@@ -1,0 +1,94 @@
+import { createServerFn } from "@tanstack/react-start";
+
+const ADMIN_PASSWORD = "1234";
+
+function assertAdmin(password: string) {
+  if (password !== (process.env.ADMIN_PASSWORD || ADMIN_PASSWORD)) {
+    throw new Error("Invalid admin password");
+  }
+}
+
+export const adminLogin = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    return { ok: true, token: "dcw-admin-" + Date.now() };
+  });
+
+type Table = "projects" | "services" | "testimonials" | "contacts";
+
+export const adminUpsert = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string; table: Table; row: Record<string, unknown> }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin
+      .from(data.table)
+      .upsert(data.row as never)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return res;
+  });
+
+export const adminDelete = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string; table: Table; id: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from(data.table).delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminListContacts = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("contacts")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows;
+  });
+
+export const adminListAllProjects = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("projects")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (error) throw new Error(error.message);
+    return rows;
+  });
+
+export const adminListAllServices = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("services")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (error) throw new Error(error.message);
+    return rows;
+  });
+
+export const adminListAllTestimonials = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("testimonials")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (error) throw new Error(error.message);
+    return rows;
+  });
