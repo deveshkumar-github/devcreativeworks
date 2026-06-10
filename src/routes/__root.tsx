@@ -81,10 +81,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Dev Creative Works — Build the Future of Your Business" },
       { name: "description", content: "Websites, branding, social media and digital design for growing businesses across India." },
       { name: "author", content: "Dev Creative Works" },
-      { property: "og:title", content: "Dev Creative Works" },
-      { property: "og:description", content: "Websites, branding and content for businesses that want to be taken seriously." },
+      { property: "og:title", content: "Dev Creative Works — Build the Future of Your Business" },
+      { property: "og:description", content: "Websites, branding, social media and digital design for growing businesses across India." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Dev Creative Works — Build the Future of Your Business" },
+      { name: "twitter:description", content: "Websites, branding, social media and digital design for growing businesses across India." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2b2398d9-e958-4c62-af20-667af0571e52/id-preview-f35ad502--1801e77c-eddb-4000-96b3-58bfad6f2468.lovable.app-1781069736571.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2b2398d9-e958-4c62-af20-667af0571e52/id-preview-f35ad502--1801e77c-eddb-4000-96b3-58bfad6f2468.lovable.app-1781069736571.png" },
     ],
     links: [
       {
