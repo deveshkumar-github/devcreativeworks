@@ -14,7 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          business_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          project_details: string | null
+          status: string
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          project_details?: string | null
+          status?: string
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          project_details?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          category: string | null
+          challenge: string | null
+          created_at: string
+          id: string
+          live_link: string | null
+          result: string | null
+          slug: string
+          solution: string | null
+          sort_order: number
+          status: string
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          challenge?: string | null
+          created_at?: string
+          id?: string
+          live_link?: string | null
+          result?: string | null
+          slug: string
+          solution?: string | null
+          sort_order?: number
+          status?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          challenge?: string | null
+          created_at?: string
+          id?: string
+          live_link?: string | null
+          result?: string | null
+          slug?: string
+          solution?: string | null
+          sort_order?: number
+          status?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          pricing: string | null
+          sort_order: number
+          status: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          pricing?: string | null
+          sort_order?: number
+          status?: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          pricing?: string | null
+          sort_order?: number
+          status?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          avatar_url: string | null
+          business: string | null
+          created_at: string
+          id: string
+          name: string
+          quote: string
+          rating: number | null
+          sort_order: number
+          status: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          business?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          quote: string
+          rating?: number | null
+          sort_order?: number
+          status?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          business?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          quote?: string
+          rating?: number | null
+          sort_order?: number
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
