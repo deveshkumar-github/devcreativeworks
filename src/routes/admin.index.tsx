@@ -14,6 +14,7 @@ import { useAdminAuth, clearAdminPassword } from "@/lib/use-admin";
 import { toast } from "sonner";
 import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox } from "lucide-react";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -110,14 +111,14 @@ function ProjectsTab({ password }: { password: string }) {
       </div>
       {editing && (
         <Modal title={editing.id ? "Edit project" : "New project"} onClose={() => setEditing(null)}>
-          <ProjectForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} />
+          <ProjectForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} password={password} />
         </Modal>
       )}
     </div>
   );
 }
 
-function ProjectForm({ initial, onSubmit, saving }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean }) {
+function ProjectForm({ initial, onSubmit, saving, password }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean; password: string }) {
   const [f, setF] = useState({
     id: (initial.id as string) || undefined,
     title: (initial.title as string) || "",
@@ -141,7 +142,7 @@ function ProjectForm({ initial, onSubmit, saving }: { initial: Record<string, un
       </div>
       <FieldRow label="Live link"><TextInput value={f.live_link} onChange={(v) => setF({ ...f, live_link: v })} placeholder="https://..." /></FieldRow>
       <FieldRow label="Tags (comma separated)"><TextInput value={f.tags} onChange={(v) => setF({ ...f, tags: v })} /></FieldRow>
-      <FieldRow label="Thumbnail URL (1280×720)"><TextInput value={f.thumbnail_url} onChange={(v) => setF({ ...f, thumbnail_url: v })} placeholder="https://..." /></FieldRow>
+      <FieldRow label="Thumbnail (1280×720)"><ImageUpload value={f.thumbnail_url} onChange={(v) => setF({ ...f, thumbnail_url: v })} password={password} /></FieldRow>
       <FieldRow label="Challenge"><TextArea value={f.challenge} onChange={(v) => setF({ ...f, challenge: v })} /></FieldRow>
       <FieldRow label="Solution"><TextArea value={f.solution} onChange={(v) => setF({ ...f, solution: v })} /></FieldRow>
       <FieldRow label="Result"><TextArea value={f.result} onChange={(v) => setF({ ...f, result: v })} /></FieldRow>
@@ -192,14 +193,14 @@ function ServicesTab({ password }: { password: string }) {
       </div>
       {editing && (
         <Modal title={editing.id ? "Edit service" : "New service"} onClose={() => setEditing(null)}>
-          <ServiceForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} />
+          <ServiceForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} password={password} />
         </Modal>
       )}
     </div>
   );
 }
 
-function ServiceForm({ initial, onSubmit, saving }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean }) {
+function ServiceForm({ initial, onSubmit, saving, password }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean; password: string }) {
   const [f, setF] = useState({
     id: (initial.id as string) || undefined,
     title: (initial.title as string) || "",
@@ -218,7 +219,7 @@ function ServiceForm({ initial, onSubmit, saving }: { initial: Record<string, un
         <FieldRow label="Pricing"><TextInput value={f.pricing} onChange={(v) => setF({ ...f, pricing: v })} placeholder="From ₹5,000" /></FieldRow>
         <FieldRow label="Icon (lucide)"><TextInput value={f.icon} onChange={(v) => setF({ ...f, icon: v })} placeholder="Globe, Instagram, Video..." /></FieldRow>
       </div>
-      <FieldRow label="Thumbnail URL"><TextInput value={f.thumbnail_url} onChange={(v) => setF({ ...f, thumbnail_url: v })} /></FieldRow>
+      <FieldRow label="Thumbnail"><ImageUpload value={f.thumbnail_url} onChange={(v) => setF({ ...f, thumbnail_url: v })} password={password} /></FieldRow>
       <div className="grid sm:grid-cols-2 gap-4">
         <FieldRow label="Status">
           <select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })} className="w-full rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">

@@ -92,3 +92,20 @@ export const adminListAllTestimonials = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return rows;
   });
+
+export const adminUploadFile = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string; filename: string; contentType: string; dataBase64: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const binary = Uint8Array.from(atob(data.dataBase64), (c) => c.charCodeAt(0));
+    const ext = (data.filename.split(".").pop() || "bin").toLowerCase();
+    const path = `uploads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabaseAdmin.storage.from("media").upload(path, binary, {
+      contentType: data.contentType || "application/octet-stream",
+      upsert: false,
+    });
+    if (error) throw new Error(error.message);
+    const { data: pub } = supabaseAdmin.storage.from("media").getPublicUrl(path);
+    return { url: pub.publicUrl, path };
+  });
