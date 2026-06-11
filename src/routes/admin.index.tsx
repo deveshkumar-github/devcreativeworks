@@ -111,14 +111,14 @@ function ProjectsTab({ password }: { password: string }) {
       </div>
       {editing && (
         <Modal title={editing.id ? "Edit project" : "New project"} onClose={() => setEditing(null)}>
-          <ProjectForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} />
+          <ProjectForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} password={password} />
         </Modal>
       )}
     </div>
   );
 }
 
-function ProjectForm({ initial, onSubmit, saving }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean }) {
+function ProjectForm({ initial, onSubmit, saving, password }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean; password: string }) {
   const [f, setF] = useState({
     id: (initial.id as string) || undefined,
     title: (initial.title as string) || "",
@@ -193,14 +193,14 @@ function ServicesTab({ password }: { password: string }) {
       </div>
       {editing && (
         <Modal title={editing.id ? "Edit service" : "New service"} onClose={() => setEditing(null)}>
-          <ServiceForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} />
+          <ServiceForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} password={password} />
         </Modal>
       )}
     </div>
   );
 }
 
-function ServiceForm({ initial, onSubmit, saving }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean }) {
+function ServiceForm({ initial, onSubmit, saving, password }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean; password: string }) {
   const [f, setF] = useState({
     id: (initial.id as string) || undefined,
     title: (initial.title as string) || "",
