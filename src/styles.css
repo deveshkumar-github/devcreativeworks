@@ -172,3 +172,51 @@
 @utility shadow-glow {
   box-shadow: 0 20px 60px -20px rgba(21, 101, 216, 0.45);
 }
+
+@keyframes blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.08); }
+  66% { transform: translate(-25px, 25px) scale(0.94); }
+}
+@keyframes blob-float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-40px, 30px) scale(1.1); }
+}
+@keyframes grid-pan {
+  0% { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes drift-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+}
+
+@utility animate-blob {
+  animation: blob-float 18s ease-in-out infinite;
+}
+@utility animate-blob-slow {
+  animation: blob-float-slow 26s ease-in-out infinite;
+}
+@utility animate-grid-pan {
+  animation: grid-pan 20s linear infinite;
+}
+@utility animate-spin-slow {
+  animation: spin-slow 40s linear infinite;
+}
+@utility animate-drift-y {
+  animation: drift-y 9s ease-in-out infinite;
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(21,101,216,0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(21,101,216,0.07) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+@utility bg-dots {
+  background-image: radial-gradient(rgba(21,101,216,0.18) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
