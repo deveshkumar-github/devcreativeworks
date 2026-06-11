@@ -1,4 +1,5 @@
 import { Eye, Target, Heart } from "lucide-react";
+import { AnimatedBg } from "./AnimatedBg";
 
 export function About() {
   const cards = [
@@ -7,8 +8,9 @@ export function About() {
     { icon: Target, title: "Mission", body: "Making professional digital solutions accessible to every entrepreneur, school, temple and organization." },
   ];
   return (
-    <section id="about" className="py-24 bg-muted/40">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="about" className="relative py-24 bg-muted/40 overflow-hidden">
+      <AnimatedBg variant="grid" />
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-12">
           <p className="text-sm font-semibold uppercase tracking-wider text-brand mb-3">About us</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-navy">Crafted for businesses that want to be taken seriously.</h2>
