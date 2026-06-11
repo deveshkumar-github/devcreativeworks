@@ -1,4 +1,5 @@
 import { Search, PenTool, Code2, Rocket, TrendingUp } from "lucide-react";
+import { AnimatedBg } from "./AnimatedBg";
 
 const steps = [
   { icon: Search, title: "Discover", body: "Understanding your business, audience and goals." },
@@ -10,8 +11,9 @@ const steps = [
 
 export function Process() {
   return (
-    <section id="process" className="py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="process" className="relative py-24 overflow-hidden">
+      <AnimatedBg variant="dots" />
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-14 mx-auto text-center">
           <p className="text-sm font-semibold uppercase tracking-wider text-brand mb-3">Our process</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-navy">A simple, proven journey from idea to growth.</h2>

@@ -1,11 +1,12 @@
 import { Check } from "lucide-react";
+import { AnimatedBg } from "./AnimatedBg";
 
 const items = ["Modern Design", "Mobile First", "Fast Delivery", "Affordable Pricing", "Long-Term Partnership", "Growth Focused"];
 
 export function WhyUs() {
   return (
     <section className="py-24 bg-navy text-white relative overflow-hidden">
-      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+      <AnimatedBg variant="dark" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
