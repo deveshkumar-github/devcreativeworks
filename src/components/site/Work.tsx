@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
+import { AnimatedBg } from "./AnimatedBg";
 
 export function Work() {
   const qc = useQueryClient();
@@ -20,8 +21,9 @@ export function Work() {
   }, [qc]);
 
   return (
-    <section id="work" className="py-24 bg-muted/40">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="work" className="relative py-24 bg-muted/40 overflow-hidden">
+      <AnimatedBg variant="grid" />
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-wider text-brand mb-3">Featured work</p>
