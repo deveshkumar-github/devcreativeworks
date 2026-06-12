@@ -9,7 +9,7 @@ export function About() {
   ];
   return (
     <section id="about" className="relative py-24 bg-muted/40 overflow-hidden">
-      <AnimatedBg variant="grid" />
+      <AnimatedBg variant="blueprint" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-12">
           <p className="text-sm font-semibold uppercase tracking-wider text-brand mb-3">About us</p>

@@ -9,7 +9,7 @@ export function Hero() {
         <div className="absolute top-0 -left-40 w-[500px] h-[500px] rounded-full bg-brand/10 blur-3xl" />
         <div className="absolute top-40 -right-32 w-[400px] h-[400px] rounded-full bg-orange/10 blur-3xl" />
       </div>
-      <AnimatedBg variant="grid" />
+      <AnimatedBg variant="mesh" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-24 lg:pt-24 lg:pb-32 grid lg:grid-cols-2 gap-12 items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 text-xs font-semibold text-brand mb-6">

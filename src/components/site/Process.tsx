@@ -12,7 +12,7 @@ const steps = [
 export function Process() {
   return (
     <section id="process" className="relative py-24 overflow-hidden">
-      <AnimatedBg variant="dots" />
+      <AnimatedBg variant="circuit" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-14 mx-auto text-center">
           <p className="text-sm font-semibold uppercase tracking-wider text-brand mb-3">Our process</p>
