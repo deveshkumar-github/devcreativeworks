@@ -1,4 +1,5 @@
 import { Search, PenTool, Code2, Rocket, TrendingUp } from "lucide-react";
+import { motion } from "motion/react";
 import { AnimatedBg } from "./AnimatedBg";
 
 const steps = [
@@ -20,14 +21,24 @@ export function Process() {
         </div>
         <div className="grid md:grid-cols-5 gap-4">
           {steps.map((s, i) => (
-            <div key={s.title} className="bg-white rounded-2xl p-6 border border-border/60 h-full">
+            <motion.div
+              key={s.title}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.45, delay: i * 0.1 }}
+              whileHover={{ y: -6, scale: 1.02 }}
+              className="bg-white rounded-2xl p-6 border border-border/60 h-full"
+            >
               <div className="flex items-center justify-between mb-4">
-                <div className="h-11 w-11 rounded-xl bg-gradient-brand flex items-center justify-center"><s.icon className="w-5 h-5 text-white" /></div>
+                <motion.div whileHover={{ rotate: -10, scale: 1.1 }} className="h-11 w-11 rounded-xl bg-gradient-brand flex items-center justify-center">
+                  <s.icon className="w-5 h-5 text-white" />
+                </motion.div>
                 <span className="font-display text-2xl font-bold text-muted-foreground/30">0{i + 1}</span>
               </div>
               <h3 className="font-semibold text-navy mb-1">{s.title}</h3>
               <p className="text-sm text-slate-soft leading-relaxed">{s.body}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
