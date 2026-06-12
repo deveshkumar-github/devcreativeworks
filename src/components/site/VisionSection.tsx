@@ -4,7 +4,7 @@ import { AnimatedBg } from "./AnimatedBg";
 export function VisionSection() {
   return (
     <section className="relative py-24 bg-muted/40 overflow-hidden">
-      <AnimatedBg variant="gradient" />
+      <AnimatedBg variant="aurora" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-orange mb-3">Our vision</p>
