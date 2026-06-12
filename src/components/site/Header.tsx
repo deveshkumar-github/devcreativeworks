@@ -16,7 +16,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/80 border-b border-border/60">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <img src={logoAsset.url} alt="Dev Creative Works" className="h-14 w-14 sm:h-16 sm:w-16 object-contain drop-shadow-sm" />
           <span className="font-display font-bold text-navy text-xl hidden sm:block">
