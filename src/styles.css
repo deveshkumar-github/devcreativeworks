@@ -274,3 +274,12 @@
 @utility bg-diagonal {
   background-image: repeating-linear-gradient(45deg, rgba(21,101,216,0.06) 0 2px, transparent 2px 18px);
 }
+
+@keyframes marquee-x {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@utility animate-marquee-x {
+  animation: marquee-x 40s linear infinite;
+  will-change: transform;
+}

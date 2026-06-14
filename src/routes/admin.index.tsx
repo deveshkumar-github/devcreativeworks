@@ -9,10 +9,11 @@ import {
   adminListAllProjects,
   adminListAllServices,
   adminListAllTestimonials,
+  adminListAllClientLogos,
 } from "@/lib/admin.functions";
 import { useAdminAuth, clearAdminPassword } from "@/lib/use-admin";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2 } from "lucide-react";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/admin/")({
   component: AdminPage,
 });
 
-type Tab = "projects" | "services" | "testimonials" | "contacts";
+type Tab = "projects" | "services" | "testimonials" | "logos" | "contacts";
 
 function AdminPage() {
   const { authenticated, ready, password } = useAdminAuth();
@@ -57,11 +58,13 @@ function AdminPage() {
           <TabBtn active={tab === "projects"} onClick={() => setTab("projects")} icon={Briefcase}>Projects</TabBtn>
           <TabBtn active={tab === "services"} onClick={() => setTab("services")} icon={Layers}>Services</TabBtn>
           <TabBtn active={tab === "testimonials"} onClick={() => setTab("testimonials")} icon={Star}>Testimonials</TabBtn>
+          <TabBtn active={tab === "logos"} onClick={() => setTab("logos")} icon={Building2}>Client Logos</TabBtn>
           <TabBtn active={tab === "contacts"} onClick={() => setTab("contacts")} icon={Inbox}>Leads</TabBtn>
         </div>
         {tab === "projects" && <ProjectsTab password={password} />}
         {tab === "services" && <ServicesTab password={password} />}
         {tab === "testimonials" && <TestimonialsTab password={password} />}
+        {tab === "logos" && <ClientLogosTab password={password} />}
         {tab === "contacts" && <ContactsTab password={password} />}
       </div>
     </div>
@@ -306,6 +309,74 @@ function TestimonialForm({ initial, onSubmit, saving }: { initial: Record<string
 }
 
 /* ------------ CONTACTS ------------ */
+/* ------------ CLIENT LOGOS ------------ */
+function ClientLogosTab({ password }: { password: string }) {
+  const qc = useQueryClient();
+  const list = useServerFn(adminListAllClientLogos);
+  const upsert = useServerFn(adminUpsert);
+  const del = useServerFn(adminDelete);
+  const { data } = useQuery({ queryKey: ["admin-logos"], queryFn: () => list({ data: { password } }) });
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
+  const save = useMutation({
+    mutationFn: (row: Record<string, unknown>) => upsert({ data: { password, table: "client_logos", row } }),
+    onSuccess: () => { toast.success("Saved"); setEditing(null); qc.invalidateQueries({ queryKey: ["admin-logos"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => del({ data: { password, table: "client_logos", id } }),
+    onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["admin-logos"] }); },
+  });
+  return (
+    <div>
+      <SectionHeader title="Client Logos" subtitle="Brand logos in the homepage scrolling marquee" onAdd={() => setEditing({ status: "active" })} />
+      <div className="grid gap-3">
+        {(data ?? []).map((l) => (
+          <RowCard key={l.id as string}
+            title={l.name as string}
+            subtitle={(l.link as string) || ((l.status as string) === "active" ? "Active" : "Hidden")}
+            thumbnail={l.logo_url as string}
+            onEdit={() => setEditing(l as Record<string, unknown>)}
+            onDelete={() => remove.mutate(l.id as string)}
+          />
+        ))}
+      </div>
+      {editing && (
+        <Modal title={editing.id ? "Edit logo" : "New logo"} onClose={() => setEditing(null)}>
+          <ClientLogoForm initial={editing} onSubmit={(row) => save.mutate(row)} saving={save.isPending} password={password} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function ClientLogoForm({ initial, onSubmit, saving, password }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean; password: string }) {
+  const [f, setF] = useState({
+    id: (initial.id as string) || undefined,
+    name: (initial.name as string) || "",
+    logo_url: (initial.logo_url as string) || "",
+    link: (initial.link as string) || "",
+    status: (initial.status as string) || "active",
+    sort_order: (initial.sort_order as number) ?? 0,
+  });
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(f); }} className="space-y-4">
+      <FieldRow label="Brand name *"><TextInput value={f.name} onChange={(v) => setF({ ...f, name: v })} required /></FieldRow>
+      <FieldRow label="Logo image (PNG with transparent background works best)"><ImageUpload value={f.logo_url} onChange={(v) => setF({ ...f, logo_url: v })} password={password} /></FieldRow>
+      <FieldRow label="Website link (optional)"><TextInput value={f.link} onChange={(v) => setF({ ...f, link: v })} placeholder="https://..." /></FieldRow>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <FieldRow label="Status">
+          <select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })} className="w-full rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">
+            <option value="active">Active</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </FieldRow>
+        <FieldRow label="Sort order"><TextInput type="number" value={String(f.sort_order)} onChange={(v) => setF({ ...f, sort_order: Number(v) || 0 })} /></FieldRow>
+      </div>
+      <SaveBtn saving={saving} />
+    </form>
+  );
+}
+
 function ContactsTab({ password }: { password: string }) {
   const qc = useQueryClient();
   const list = useServerFn(adminListContacts);

@@ -15,7 +15,7 @@ export const adminLogin = createServerFn({ method: "POST" })
     return { ok: true, token: "dcw-admin-" + Date.now() };
   });
 
-type Table = "projects" | "services" | "testimonials" | "contacts";
+type Table = "projects" | "services" | "testimonials" | "contacts" | "client_logos";
 
 export const adminUpsert = createServerFn({ method: "POST" })
   .inputValidator((d: { password: string; table: Table; row: Record<string, unknown> }) => d)
@@ -87,6 +87,19 @@ export const adminListAllTestimonials = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("testimonials")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (error) throw new Error(error.message);
+    return rows;
+  });
+
+export const adminListAllClientLogos = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("client_logos")
       .select("*")
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
