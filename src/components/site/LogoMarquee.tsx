@@ -61,11 +61,11 @@ export function LogoMarquee() {
       >
         <div className="flex w-max animate-marquee-x group-hover:[animation-play-state:paused]">
           {[0, 1].map((dup) => (
-            <ul key={dup} className="flex shrink-0 items-center gap-10 sm:gap-16 px-5 sm:px-8">
+            <ul key={dup} className="flex shrink-0 items-center gap-12 sm:gap-20 px-6 sm:px-10">
               {track.map((l, i) => (
                 <li
                   key={`${dup}-${l.id}-${i}`}
-                  className="shrink-0 h-10 sm:h-12 flex items-center"
+                  className="shrink-0 h-14 sm:h-16 flex items-center"
                 >
                   {l.link ? (
                     <a href={l.link} target="_blank" rel="noreferrer" aria-label={l.name}>
@@ -90,7 +90,7 @@ function LogoImg({ l }: { l: Logo }) {
       src={l.logo_url}
       alt={l.name}
       loading="lazy"
-      className="h-8 sm:h-10 w-auto max-w-[140px] sm:max-w-[170px] object-contain opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition duration-300"
+      className="h-10 sm:h-14 w-auto max-w-[180px] sm:max-w-[220px] object-contain opacity-90 hover:opacity-100 transition duration-300"
     />
   );
 }
