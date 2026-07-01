@@ -504,3 +504,174 @@ function TextArea({ value, onChange }: { value: string; onChange: (v: string) =>
 function SaveBtn({ saving }: { saving: boolean }) {
   return <button type="submit" disabled={saving} className="w-full rounded-xl bg-gradient-brand text-white py-3 font-semibold shadow-soft disabled:opacity-60">{saving ? "Saving..." : "Save"}</button>;
 }
+
+/* ------------ PAYMENTS ------------ */
+type Inst = { label: string; amount: number; paid?: boolean; paid_at?: string | null };
+
+function PaymentsTab({ password }: { password: string }) {
+  const qc = useQueryClient();
+  const list = useServerFn(adminListAllPayments);
+  const upsert = useServerFn(adminUpsert);
+  const del = useServerFn(adminDelete);
+  const { data } = useQuery({ queryKey: ["admin-payments"], queryFn: () => list({ data: { password } }) });
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
+
+  const save = useMutation({
+    mutationFn: (row: Record<string, unknown>) => upsert({ data: { password, table: "payments", row } }),
+    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["admin-payments"] }); setEditing(null); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => del({ data: { password, table: "payments", id } }),
+    onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["admin-payments"] }); },
+  });
+
+  return (
+    <div>
+      <SectionHeader title="Payments" subtitle="Create shareable payment pages for clients" onAdd={() => setEditing({})} />
+      <div className="grid gap-3">
+        {(data ?? []).length === 0 && <div className="text-sm text-slate-soft bg-white border border-border rounded-2xl p-8 text-center">No payment pages yet.</div>}
+        {(data ?? []).map((p) => {
+          const insts: Inst[] = Array.isArray(p.installments) ? (p.installments as Inst[]) : [];
+          const total = Number(p.total_amount) || 0;
+          const paid = insts.filter((i) => i.paid).reduce((a, b) => a + Number(b.amount || 0), 0);
+          const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
+          const url = typeof window !== "undefined" ? `${window.location.origin}/pay/${p.slug}` : `/pay/${p.slug}`;
+          return (
+            <div key={p.id as string} className="bg-white rounded-2xl border border-border p-5">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 rounded-xl bg-muted overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  {p.logo_url ? <img src={p.logo_url as string} className="w-full h-full object-contain" alt="" /> : <Wallet className="w-5 h-5 text-slate-soft" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-navy truncate">{p.title as string}</div>
+                  <div className="text-xs text-slate-soft truncate">/pay/{p.slug as string}</div>
+                  <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-brand to-orange" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="mt-1 text-xs text-slate-soft">
+                    ₹{paid.toLocaleString("en-IN")} of ₹{total.toLocaleString("en-IN")} · {pct}%
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CopyBtn text={url} />
+                  <a href={url} target="_blank" rel="noreferrer" className="h-9 w-9 rounded-lg bg-muted hover:bg-brand/10 hover:text-brand text-slate-soft flex items-center justify-center"><ExternalLink className="w-4 h-4" /></a>
+                  <button onClick={() => setEditing(p as Record<string, unknown>)} className="h-9 w-9 rounded-lg bg-muted hover:bg-brand/10 hover:text-brand text-slate-soft flex items-center justify-center"><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => { if (confirm("Delete payment page?")) remove.mutate(p.id as string); }} className="h-9 w-9 rounded-lg bg-muted hover:bg-red-50 hover:text-red-600 text-slate-soft flex items-center justify-center"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {editing && (
+        <Modal title={editing.id ? "Edit payment page" : "New payment page"} onClose={() => setEditing(null)}>
+          <PaymentForm initial={editing} onSubmit={(r) => save.mutate(r)} saving={save.isPending} password={password} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+      className="h-9 w-9 rounded-lg bg-muted hover:bg-brand/10 hover:text-brand text-slate-soft flex items-center justify-center"
+      title="Copy shareable link"
+    >
+      {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+    </button>
+  );
+}
+
+function slugify(s: string) {
+  return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+}
+
+function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<string, unknown>; onSubmit: (r: Record<string, unknown>) => void; saving: boolean; password: string }) {
+  const [f, setF] = useState({
+    id: (initial.id as string) || undefined,
+    slug: (initial.slug as string) || "",
+    title: (initial.title as string) || "",
+    description: (initial.description as string) || "",
+    logo_url: (initial.logo_url as string) || "",
+    total_amount: Number(initial.total_amount) || 0,
+    upi_id: (initial.upi_id as string) || "",
+    upi_name: (initial.upi_name as string) || "Dev Creative Works",
+    whatsapp_number: (initial.whatsapp_number as string) || "917013906671",
+    status: (initial.status as string) || "active",
+  });
+  const [insts, setInsts] = useState<Inst[]>(Array.isArray(initial.installments) ? (initial.installments as Inst[]) : []);
+
+  const totalInsts = insts.reduce((a, b) => a + (Number(b.amount) || 0), 0);
+
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); onSubmit({ ...f, slug: f.slug || slugify(f.title), installments: insts }); }}
+      className="space-y-4"
+    >
+      <FieldRow label="Title *"><TextInput value={f.title} onChange={(v) => setF({ ...f, title: v, slug: f.slug || slugify(v) })} required /></FieldRow>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <FieldRow label="Shareable slug *"><TextInput value={f.slug} onChange={(v) => setF({ ...f, slug: slugify(v) })} placeholder="acme-website" required /></FieldRow>
+        <FieldRow label="Total amount (₹) *"><TextInput type="number" value={String(f.total_amount)} onChange={(v) => setF({ ...f, total_amount: Number(v) || 0 })} required /></FieldRow>
+      </div>
+      <FieldRow label="Client / Project logo"><ImageUpload value={f.logo_url} onChange={(v) => setF({ ...f, logo_url: v })} password={password} /></FieldRow>
+      <FieldRow label="Description"><TextArea value={f.description} onChange={(v) => setF({ ...f, description: v })} /></FieldRow>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <FieldRow label="UPI ID *"><TextInput value={f.upi_id} onChange={(v) => setF({ ...f, upi_id: v })} placeholder="yourname@upi" /></FieldRow>
+        <FieldRow label="UPI payee name"><TextInput value={f.upi_name} onChange={(v) => setF({ ...f, upi_name: v })} /></FieldRow>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <FieldRow label="WhatsApp confirmation number"><TextInput value={f.whatsapp_number} onChange={(v) => setF({ ...f, whatsapp_number: v })} placeholder="917013906671" /></FieldRow>
+        <FieldRow label="Status">
+          <select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })} className="w-full rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">
+            <option value="active">Active</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </FieldRow>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-muted/30 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <div className="font-semibold text-navy text-sm">Payment breakdown</div>
+            <div className="text-xs text-slate-soft">Total installments: ₹{totalInsts.toLocaleString("en-IN")} {totalInsts !== f.total_amount && f.total_amount > 0 ? <span className="text-orange">· doesn't match total</span> : null}</div>
+          </div>
+          <button type="button" onClick={() => setInsts([...insts, { label: `Installment ${insts.length + 1}`, amount: 0, paid: false }])} className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline">
+            <Plus className="w-3.5 h-3.5" /> Add
+          </button>
+        </div>
+        <div className="space-y-2">
+          {insts.length === 0 && <div className="text-xs text-slate-soft text-center py-3">No installments yet — split the total into milestones (e.g. 50% advance, 50% on delivery).</div>}
+          {insts.map((inst, i) => (
+            <div key={i} className="grid grid-cols-12 gap-2 items-center bg-white rounded-xl border border-border p-2">
+              <input value={inst.label} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} placeholder="Label" className="col-span-5 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:border-brand focus:bg-white" />
+              <input type="number" value={inst.amount} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, amount: Number(e.target.value) || 0 } : x))} placeholder="Amount" className="col-span-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:border-brand focus:bg-white" />
+              <label className="col-span-3 inline-flex items-center gap-1.5 text-xs text-slate-soft">
+                <input type="checkbox" checked={!!inst.paid} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, paid: e.target.checked, paid_at: e.target.checked ? (x.paid_at || new Date().toISOString()) : null } : x))} className="accent-brand" />
+                Paid
+              </label>
+              <button type="button" onClick={() => setInsts(insts.filter((_, j) => j !== i))} className="col-span-1 h-8 w-8 rounded-lg bg-muted hover:bg-red-50 hover:text-red-600 text-slate-soft flex items-center justify-center"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          ))}
+        </div>
+        {f.total_amount > 0 && insts.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              // Auto-distribute equally
+              const each = Math.round((f.total_amount / insts.length) * 100) / 100;
+              const remainder = Math.round((f.total_amount - each * (insts.length - 1)) * 100) / 100;
+              setInsts(insts.map((x, i) => ({ ...x, amount: i === insts.length - 1 ? remainder : each })));
+            }}
+            className="mt-3 text-xs text-brand font-semibold hover:underline"
+          >Split total evenly</button>
+        )}
+      </div>
+
+      <SaveBtn saving={saving} />
+    </form>
+  );
+}
