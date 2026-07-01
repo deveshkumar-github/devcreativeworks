@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProjectsSlugRouteImport } from './routes/projects.$slug'
+import { Route as PaySlugRouteImport } from './routes/pay.$slug'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
   path: '/projects/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaySlugRoute = PaySlugRouteImport.update({
+  id: '/pay/$slug',
+  path: '/pay/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin/login',
   path: '/admin/login',
@@ -38,12 +44,14 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
+  '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
+  '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -51,20 +59,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
+  '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin/login' | '/projects/$slug' | '/admin/'
+  fullPaths: '/' | '/admin/login' | '/pay/$slug' | '/projects/$slug' | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin/login' | '/projects/$slug' | '/admin'
-  id: '__root__' | '/' | '/admin/login' | '/projects/$slug' | '/admin/'
+  to: '/' | '/admin/login' | '/pay/$slug' | '/projects/$slug' | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin/login'
+    | '/pay/$slug'
+    | '/projects/$slug'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  PaySlugRoute: typeof PaySlugRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -92,6 +108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$slug': {
+      id: '/pay/$slug'
+      path: '/pay/$slug'
+      fullPath: '/pay/$slug'
+      preLoaderRoute: typeof PaySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/admin/login'
@@ -105,6 +128,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminLoginRoute: AdminLoginRoute,
+  PaySlugRoute: PaySlugRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
