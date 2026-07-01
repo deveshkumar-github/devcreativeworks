@@ -10,10 +10,11 @@ import {
   adminListAllServices,
   adminListAllTestimonials,
   adminListAllClientLogos,
+  adminListAllPayments,
 } from "@/lib/admin.functions";
 import { useAdminAuth, clearAdminPassword } from "@/lib/use-admin";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2 } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2, Wallet, Copy, Check, ExternalLink } from "lucide-react";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/admin/")({
   component: AdminPage,
 });
 
-type Tab = "projects" | "services" | "testimonials" | "logos" | "contacts";
+type Tab = "projects" | "services" | "testimonials" | "logos" | "contacts" | "payments";
 
 function AdminPage() {
   const { authenticated, ready, password } = useAdminAuth();
@@ -59,12 +60,14 @@ function AdminPage() {
           <TabBtn active={tab === "services"} onClick={() => setTab("services")} icon={Layers}>Services</TabBtn>
           <TabBtn active={tab === "testimonials"} onClick={() => setTab("testimonials")} icon={Star}>Testimonials</TabBtn>
           <TabBtn active={tab === "logos"} onClick={() => setTab("logos")} icon={Building2}>Client Logos</TabBtn>
+          <TabBtn active={tab === "payments"} onClick={() => setTab("payments")} icon={Wallet}>Payments</TabBtn>
           <TabBtn active={tab === "contacts"} onClick={() => setTab("contacts")} icon={Inbox}>Leads</TabBtn>
         </div>
         {tab === "projects" && <ProjectsTab password={password} />}
         {tab === "services" && <ServicesTab password={password} />}
         {tab === "testimonials" && <TestimonialsTab password={password} />}
         {tab === "logos" && <ClientLogosTab password={password} />}
+        {tab === "payments" && <PaymentsTab password={password} />}
         {tab === "contacts" && <ContactsTab password={password} />}
       </div>
     </div>
