@@ -77,6 +77,57 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          installments: Json
+          logo_url: string | null
+          slug: string
+          status: string
+          title: string
+          total_amount: number
+          updated_at: string
+          upi_id: string | null
+          upi_name: string | null
+          whatsapp_number: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          installments?: Json
+          logo_url?: string | null
+          slug: string
+          status?: string
+          title: string
+          total_amount?: number
+          updated_at?: string
+          upi_id?: string | null
+          upi_name?: string | null
+          whatsapp_number?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          installments?: Json
+          logo_url?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          total_amount?: number
+          updated_at?: string
+          upi_id?: string | null
+          upi_name?: string | null
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           category: string | null
