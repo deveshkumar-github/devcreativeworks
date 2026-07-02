@@ -14,6 +14,16 @@ type Installment = {
   paid_at?: string | null;
 };
 
+type DashPage = {
+  id: string;
+  label: string;
+  checked?: boolean;
+  locked?: boolean;
+  children?: DashPage[];
+};
+
+type DashNote = { title?: string; body: string; tone?: "info" | "warning" };
+
 export const Route = createFileRoute("/pay/$slug")({
   loader: async ({ params }) => {
     const payment = await getPaymentBySlug({ data: { slug: params.slug } });
