@@ -73,25 +73,61 @@ function PayPage() {
   const [copied, setCopied] = useState(false);
 
   const activeAmount = selected ? Number(selected.amount) : Number(customAmount) || 0;
+  const paymentLocked = !!(payment as { payment_locked?: boolean }).payment_locked;
+  const notes: DashNote[] = Array.isArray(payment.dashboard_notes) ? (payment.dashboard_notes as DashNote[]) : [];
+
+  // First-visit important notes modal (per slug)
+  const noteKey = `dcw-notes-agreed-${payment.slug}`;
+  const [showNotes, setShowNotes] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (notes.length === 0) return;
+    if (!window.localStorage.getItem(noteKey)) setShowNotes(true);
+  }, [noteKey, notes.length]);
+  const agreeNotes = () => {
+    try { window.localStorage.setItem(noteKey, new Date().toISOString()); } catch { /* ignore */ }
+    setShowNotes(false);
+  };
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f6f8ff] via-white to-[#fff7ed]">
-      <header className="mx-auto max-w-3xl px-4 sm:px-6 py-6 flex items-center justify-between">
+      <header className="mx-auto max-w-3xl px-4 sm:px-6 pt-5 pb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <img src={logoAsset.url} className="h-9 w-9 object-contain" alt="" />
-          <div>
+          <div className="min-w-0">
             <div className="font-display font-bold text-navy text-sm leading-tight">Dev Creative Works</div>
             <div className="text-[11px] text-slate-soft leading-tight flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Secure payment</div>
           </div>
         </div>
-        <a href="https://wa.me/917013906671" className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-full px-3 py-1.5 inline-flex items-center gap-1.5">
+        <a href="https://wa.me/917013906671" className="shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-full px-3 py-1.5 inline-flex items-center gap-1.5">
           <MessageCircle className="w-3.5 h-3.5" /> Help
         </a>
       </header>
 
+      {/* Top nav tabs */}
+      {payment.dashboard_enabled && (
+        <nav className="sticky top-0 z-20 mx-auto max-w-3xl px-4 sm:px-6 pt-1 pb-3 bg-gradient-to-b from-white/95 to-white/70 backdrop-blur-md">
+          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white border border-border p-1.5 shadow-soft">
+            <button onClick={() => scrollTo("pay-section")} className="rounded-xl py-2.5 text-sm font-semibold text-navy hover:bg-brand/5 inline-flex items-center justify-center gap-1.5">
+              <Wallet className="w-4 h-4 text-brand" /> Payment
+            </button>
+            <button onClick={() => scrollTo("dashboard-section")} className="rounded-xl py-2.5 text-sm font-semibold text-navy hover:bg-brand/5 inline-flex items-center justify-center gap-1.5">
+              <LayoutDashboard className="w-4 h-4 text-brand" /> Your Dashboard
+            </button>
+          </div>
+        </nav>
+      )}
+
       <main className="mx-auto max-w-3xl px-4 sm:px-6 pb-16">
         {/* Card */}
         <motion.section
+          id="pay-section"
+          style={{ scrollMarginTop: 88 }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-3xl bg-white border border-border/70 shadow-[0_20px_60px_-30px_rgba(21,101,216,0.35)]"
@@ -111,6 +147,21 @@ function PayPage() {
                 {payment.description && <p className="text-sm text-slate-soft mt-1 whitespace-pre-line">{payment.description}</p>}
               </div>
             </div>
+
+            {paymentLocked && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className="mt-5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 flex gap-3"
+              >
+                <div className="h-10 w-10 rounded-full bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-display font-bold text-amber-800 text-sm sm:text-base">Payment is not open yet</div>
+                  <div className="text-xs sm:text-sm text-amber-800/90 mt-0.5">Your payment window has been temporarily locked. When it's opened, our team will contact you directly. You can still review the project dashboard below.</div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Progress */}
             <div className="mt-7">
@@ -166,11 +217,14 @@ function PayPage() {
                         </div>
                         <div className="text-right">
                           <div className="font-display font-bold text-navy">{formatINR(Number(inst.amount) || 0)}</div>
-                          {!paid && (
+                          {!paid && !paymentLocked && (
                             <button
                               onClick={() => { setSelected(inst); setCustomOpen(false); }}
                               className="mt-1 text-[11px] font-semibold text-brand hover:underline"
                             >Pay now →</button>
+                          )}
+                          {!paid && paymentLocked && (
+                            <div className="mt-1 text-[11px] font-semibold text-amber-700 inline-flex items-center gap-1"><Lock className="w-3 h-3" /> Locked</div>
                           )}
                         </div>
                       </motion.li>
@@ -181,7 +235,7 @@ function PayPage() {
             )}
 
             {/* CTA */}
-            {remaining > 0 && (
+            {remaining > 0 && !paymentLocked && (
               <div className="mt-8 grid sm:grid-cols-2 gap-3">
                 <button
                   onClick={() => { setSelected(null); setCustomOpen(true); setCustomAmount(String(remaining)); }}
@@ -195,6 +249,16 @@ function PayPage() {
                 >
                   Pay custom amount
                 </button>
+              </div>
+            )}
+            {remaining > 0 && paymentLocked && (
+              <div className="mt-8 rounded-2xl bg-navy/5 border border-navy/10 p-5 text-center">
+                <Lock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+                <div className="font-display font-bold text-navy text-base">Payment link is currently locked</div>
+                <div className="text-xs text-slate-soft mt-1">If it's opened, we will reach out to you on WhatsApp.</div>
+                <a href="https://wa.me/917013906671" className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-4 py-2">
+                  <MessageCircle className="w-3.5 h-3.5" /> Contact us
+                </a>
               </div>
             )}
             {remaining === 0 && total > 0 && (
@@ -222,15 +286,20 @@ function PayPage() {
         </p>
 
         {payment.dashboard_enabled && (
-          <ProjectDashboard
-            title={payment.dashboard_title || `${payment.title} Dashboard`}
-            pages={Array.isArray(payment.dashboard_pages) ? (payment.dashboard_pages as DashPage[]) : []}
-            notes={Array.isArray(payment.dashboard_notes) ? (payment.dashboard_notes as DashNote[]) : []}
-          />
+          <div id="dashboard-section" style={{ scrollMarginTop: 88 }}>
+            <ProjectDashboard
+              title={payment.dashboard_title || `${payment.title} Dashboard`}
+              pages={Array.isArray(payment.dashboard_pages) ? (payment.dashboard_pages as DashPage[]) : []}
+              notes={notes}
+            />
+          </div>
         )}
       </main>
 
       <AnimatePresence>
+        {showNotes && notes.length > 0 && (
+          <ImportantNotesModal key="notes" notes={notes} projectTitle={payment.title} onAgree={agreeNotes} />
+        )}
         {(selected || customOpen) && activeAmount > 0 && (
           <QRModal
             key="qrmodal"
@@ -254,6 +323,63 @@ function PayPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function ImportantNotesModal({ notes, projectTitle, onAgree }: { notes: DashNote[]; projectTitle: string; onAgree: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] bg-navy/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4"
+    >
+      <motion.div
+        initial={{ y: 60, opacity: 0, scale: 0.96 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 60, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 260, damping: 26 }}
+        className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-glow overflow-hidden max-h-[92vh] flex flex-col"
+      >
+        <div className="relative bg-gradient-brand text-white p-5 sm:p-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Info className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] uppercase tracking-widest opacity-80">Please read before proceeding</div>
+              <h3 className="font-display font-bold text-lg sm:text-xl truncate">Important Notes</h3>
+              <div className="text-xs opacity-80 truncate">{projectTitle}</div>
+            </div>
+          </div>
+        </div>
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1">
+          <ol className="space-y-3">
+            {notes.map((n, i) => {
+              const warn = n.tone === "warning";
+              return (
+                <li key={i} className={`rounded-2xl border p-3.5 flex gap-3 ${warn ? "bg-red-50/60 border-red-200" : "bg-muted/40 border-border"}`}>
+                  <div className={`h-7 w-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${warn ? "bg-red-500 text-white" : "bg-brand/10 text-brand"}`}>
+                    {warn ? <AlertTriangle className="w-3.5 h-3.5" /> : i + 1}
+                  </div>
+                  <div className="min-w-0">
+                    {n.title && <div className={`font-semibold text-sm ${warn ? "text-red-700" : "text-navy"}`}>{n.title}</div>}
+                    <div className={`text-sm mt-0.5 whitespace-pre-line ${warn ? "text-red-700/90" : "text-slate-soft"}`}>{n.body}</div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+        <div className="p-4 sm:p-5 border-t border-border bg-white">
+          <button
+            onClick={onAgree}
+            className="w-full rounded-2xl bg-gradient-brand text-white py-4 font-semibold shadow-soft hover:shadow-glow transition-all inline-flex items-center justify-center gap-2"
+          >
+            <CheckCircle2 className="w-5 h-5" /> I agree & continue
+          </button>
+          <div className="text-[11px] text-slate-soft text-center mt-2">By continuing you acknowledge the notes above.</div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
