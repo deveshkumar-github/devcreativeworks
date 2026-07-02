@@ -656,12 +656,16 @@ function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<
     status: (initial.status as string) || "active",
   });
   const [insts, setInsts] = useState<Inst[]>(Array.isArray(initial.installments) ? (initial.installments as Inst[]) : []);
+  const [dashEnabled, setDashEnabled] = useState<boolean>(!!initial.dashboard_enabled);
+  const [dashTitle, setDashTitle] = useState<string>((initial.dashboard_title as string) || "");
+  const [pages, setPages] = useState<DashPage[]>(Array.isArray(initial.dashboard_pages) ? (initial.dashboard_pages as DashPage[]) : []);
+  const [notes, setNotes] = useState<DashNote[]>(Array.isArray(initial.dashboard_notes) ? (initial.dashboard_notes as DashNote[]) : []);
 
   const totalInsts = insts.reduce((a, b) => a + (Number(b.amount) || 0), 0);
 
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); onSubmit({ ...f, slug: f.slug || slugify(f.title), installments: insts }); }}
+      onSubmit={(e) => { e.preventDefault(); onSubmit({ ...f, slug: f.slug || slugify(f.title), installments: insts, dashboard_enabled: dashEnabled, dashboard_title: dashTitle, dashboard_pages: pages, dashboard_notes: notes }); }}
       className="space-y-4"
     >
       <FieldRow label="Title *"><TextInput value={f.title} onChange={(v) => setF({ ...f, title: v, slug: f.slug || slugify(v) })} required /></FieldRow>
@@ -723,7 +727,139 @@ function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<
         )}
       </div>
 
+      <DashboardEditor
+        enabled={dashEnabled} onEnabled={setDashEnabled}
+        title={dashTitle} onTitle={setDashTitle}
+        pages={pages} onPages={setPages}
+        notes={notes} onNotes={setNotes}
+      />
+
       <SaveBtn saving={saving} />
     </form>
   );
 }
+
+/* --------- Dashboard editor --------- */
+function DashboardEditor({
+  enabled, onEnabled, title, onTitle, pages, onPages, notes, onNotes,
+}: {
+  enabled: boolean; onEnabled: (v: boolean) => void;
+  title: string; onTitle: (v: string) => void;
+  pages: DashPage[]; onPages: (v: DashPage[]) => void;
+  notes: DashNote[]; onNotes: (v: DashNote[]) => void;
+}) {
+  const total = countAll(pages);
+  const done = countChecked(pages);
+  const pct = total ? Math.round((done / total) * 100) : 0;
+
+  const loadTemplate = () => {
+    onPages(cloneWithIds(ISKCON_TEMPLATE));
+    if (notes.length === 0) onNotes(DEFAULT_NOTES);
+    if (!title) onTitle("ISKCON Kurnool Website Development Dashboard");
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-muted/30 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <label className="inline-flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={enabled} onChange={(e) => onEnabled(e.target.checked)} className="accent-brand w-4 h-4" />
+          <span className="font-semibold text-navy text-sm inline-flex items-center gap-1.5"><LayoutDashboard className="w-4 h-4 text-brand" /> Project dashboard on payment page</span>
+        </label>
+        <button type="button" onClick={loadTemplate} className="text-xs font-semibold text-brand hover:underline">Load ISKCON template</button>
+      </div>
+      {enabled && (
+        <div className="space-y-3">
+          <FieldRow label="Dashboard title">
+            <TextInput value={title} onChange={onTitle} placeholder="ISKCON Kurnool Website Development Dashboard" />
+          </FieldRow>
+
+          <div className="rounded-xl bg-white border border-border p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-semibold text-slate-soft">Website progress</div>
+              <div className="text-xs font-bold text-navy">{pct}% · {done}/{total}</div>
+            </div>
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-brand to-orange" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-white border border-border p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-semibold text-slate-soft">Pages & Features</div>
+              <button type="button" onClick={() => onPages([...pages, { id: uid(), label: "New page" }])} className="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1"><Plus className="w-3 h-3" /> Add page</button>
+            </div>
+            {pages.length === 0 && <div className="text-xs text-slate-soft text-center py-4">No pages yet. Click "Load ISKCON template" or "Add page".</div>}
+            <div className="space-y-1.5">
+              {pages.map((p, i) => (
+                <PageEditor key={p.id} page={p} depth={0}
+                  onChange={(next) => onPages(pages.map((x, j) => j === i ? next : x))}
+                  onDelete={() => onPages(pages.filter((_, j) => j !== i))}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-white border border-border p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-semibold text-slate-soft">Important Notes</div>
+              <div className="flex items-center gap-2">
+                {notes.length === 0 && <button type="button" onClick={() => onNotes(DEFAULT_NOTES)} className="text-xs font-semibold text-brand hover:underline">Load defaults</button>}
+                <button type="button" onClick={() => onNotes([...notes, { title: "", body: "" }])} className="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1"><Plus className="w-3 h-3" /> Add note</button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {notes.map((n, i) => (
+                <div key={i} className="grid grid-cols-12 gap-2 items-start bg-muted/40 rounded-lg p-2">
+                  <input value={n.title || ""} onChange={(e) => onNotes(notes.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Title (optional)" className="col-span-5 rounded-md border border-border bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-brand" />
+                  <textarea value={n.body} onChange={(e) => onNotes(notes.map((x, j) => j === i ? { ...x, body: e.target.value } : x))} placeholder="Body" rows={2} className="col-span-5 rounded-md border border-border bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-brand" />
+                  <select value={n.tone || "info"} onChange={(e) => onNotes(notes.map((x, j) => j === i ? { ...x, tone: e.target.value as "info" | "warning" } : x))} className="col-span-1 rounded-md border border-border bg-white px-1 py-1.5 text-xs">
+                    <option value="info">Info</option>
+                    <option value="warning">Warn</option>
+                  </select>
+                  <button type="button" onClick={() => onNotes(notes.filter((_, j) => j !== i))} className="col-span-1 h-8 w-8 rounded-md bg-white hover:bg-red-50 hover:text-red-600 text-slate-soft flex items-center justify-center border border-border"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PageEditor({ page, depth, onChange, onDelete }: { page: DashPage; depth: number; onChange: (p: DashPage) => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(true);
+  const hasKids = !!page.children?.length;
+  return (
+    <div>
+      <div className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 ${page.locked ? "bg-emerald-50/50 border-emerald-200" : page.checked ? "bg-brand/5 border-brand/20" : "bg-white border-border"}`} style={{ marginLeft: depth * 16 }}>
+        <button type="button" onClick={() => setOpen(!open)} className="h-5 w-5 flex items-center justify-center text-slate-soft flex-shrink-0">
+          {hasKids ? <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "" : "-rotate-90"}`} /> : <span className="w-1.5 h-1.5 rounded-full bg-slate-soft/30" />}
+        </button>
+        <input type="checkbox" checked={!!page.checked} onChange={(e) => onChange({ ...page, checked: e.target.checked })} className="accent-emerald-500 w-4 h-4 flex-shrink-0" title="Mark completed" />
+        <input value={page.label} onChange={(e) => onChange({ ...page, label: e.target.value })} className="flex-1 min-w-0 rounded-md border border-transparent hover:border-border focus:border-brand bg-transparent px-1.5 py-1 text-sm focus:outline-none focus:bg-white" />
+        <button type="button" onClick={() => onChange({ ...page, locked: !page.locked })} className={`h-7 w-7 rounded-md flex items-center justify-center flex-shrink-0 ${page.locked ? "bg-emerald-500 text-white" : "bg-muted text-slate-soft hover:text-brand"}`} title={page.locked ? "Unlock page" : "Lock page (no more changes)"}>
+          {page.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+        </button>
+        <button type="button" onClick={() => onChange({ ...page, children: [...(page.children || []), { id: uid(), label: "New item" }] })} className="h-7 w-7 rounded-md bg-muted hover:bg-brand/10 hover:text-brand text-slate-soft flex items-center justify-center flex-shrink-0" title="Add sub-page">
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+        <button type="button" onClick={onDelete} className="h-7 w-7 rounded-md bg-muted hover:bg-red-50 hover:text-red-600 text-slate-soft flex items-center justify-center flex-shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+      </div>
+      {hasKids && open && (
+        <div className="mt-1.5 space-y-1.5">
+          {page.children!.map((c, i) => (
+            <PageEditor key={c.id} page={c} depth={depth + 1}
+              onChange={(next) => onChange({ ...page, children: page.children!.map((x, j) => j === i ? next : x) })}
+              onDelete={() => onChange({ ...page, children: page.children!.filter((_, j) => j !== i) })}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function countAll(p: DashPage[]): number { let n = 0; for (const x of p) { n++; if (x.children) n += countAll(x.children); } return n; }
+function countChecked(p: DashPage[]): number { let n = 0; for (const x of p) { if (x.checked) n++; if (x.children) n += countChecked(x.children); } return n; }
+function cloneWithIds(p: DashPage[]): DashPage[] { return p.map(x => ({ ...x, id: uid(), children: x.children ? cloneWithIds(x.children) : undefined })); }
