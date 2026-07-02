@@ -81,6 +81,10 @@ export type Database = {
         Row: {
           created_at: string
           currency: string
+          dashboard_enabled: boolean
+          dashboard_notes: Json
+          dashboard_pages: Json
+          dashboard_title: string | null
           description: string | null
           id: string
           installments: Json
@@ -97,6 +101,10 @@ export type Database = {
         Insert: {
           created_at?: string
           currency?: string
+          dashboard_enabled?: boolean
+          dashboard_notes?: Json
+          dashboard_pages?: Json
+          dashboard_title?: string | null
           description?: string | null
           id?: string
           installments?: Json
@@ -113,6 +121,10 @@ export type Database = {
         Update: {
           created_at?: string
           currency?: string
+          dashboard_enabled?: boolean
+          dashboard_notes?: Json
+          dashboard_pages?: Json
+          dashboard_title?: string | null
           description?: string | null
           id?: string
           installments?: Json
