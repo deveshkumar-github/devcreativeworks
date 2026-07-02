@@ -654,6 +654,7 @@ function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<
     upi_name: (initial.upi_name as string) || "Dev Creative Works",
     whatsapp_number: (initial.whatsapp_number as string) || "917013906671",
     status: (initial.status as string) || "active",
+    payment_locked: !!initial.payment_locked,
   });
   const [insts, setInsts] = useState<Inst[]>(Array.isArray(initial.installments) ? (initial.installments as Inst[]) : []);
   const [dashEnabled, setDashEnabled] = useState<boolean>(!!initial.dashboard_enabled);
@@ -688,6 +689,14 @@ function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<
           </select>
         </FieldRow>
       </div>
+
+      <label className={`flex items-start gap-3 rounded-2xl border p-4 cursor-pointer ${f.payment_locked ? "bg-amber-50 border-amber-300" : "bg-muted/30 border-border"}`}>
+        <input type="checkbox" checked={f.payment_locked} onChange={(e) => setF({ ...f, payment_locked: e.target.checked })} className="mt-0.5 accent-amber-500 w-4 h-4" />
+        <div className="min-w-0">
+          <div className="font-semibold text-navy text-sm inline-flex items-center gap-1.5"><Lock className="w-4 h-4 text-amber-600" /> Lock payment (payment not open)</div>
+          <div className="text-xs text-slate-soft mt-0.5">Client sees the full page and dashboard, but the pay buttons are disabled with a "Payment not opened yet — we will contact you" notice.</div>
+        </div>
+      </label>
 
       <div className="rounded-2xl border border-border bg-muted/30 p-4">
         <div className="flex items-center justify-between mb-3">
