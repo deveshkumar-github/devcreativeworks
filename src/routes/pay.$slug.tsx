@@ -390,3 +390,146 @@ function QRModal({ amount, label, upiId, upiName, whatsappNumber, projectTitle, 
     </motion.div>
   );
 }
+
+function countPages(pages: DashPage[]): { done: number; total: number } {
+  let done = 0, total = 0;
+  const walk = (list: DashPage[]) => {
+    for (const p of list) {
+      total++;
+      if (p.checked) done++;
+      if (p.children?.length) walk(p.children);
+    }
+  };
+  walk(pages);
+  return { done, total };
+}
+
+function ProjectDashboard({ title, pages, notes }: { title: string; pages: DashPage[]; notes: DashNote[] }) {
+  const { done, total } = countPages(pages);
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="mt-8 relative overflow-hidden rounded-3xl bg-white border border-border/70 shadow-[0_20px_60px_-30px_rgba(21,101,216,0.25)]"
+    >
+      <div className="absolute -top-32 -left-20 w-80 h-80 rounded-full bg-brand/5 blur-3xl pointer-events-none" />
+      <div className="relative p-6 sm:p-8">
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 rounded-xl bg-gradient-brand flex items-center justify-center text-white flex-shrink-0">
+            <LayoutDashboard className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-widest font-semibold text-brand">Your Dashboard</div>
+            <h2 className="font-display font-bold text-navy text-lg sm:text-xl leading-tight truncate">{title}</h2>
+          </div>
+        </div>
+
+        {/* Progress */}
+        <div className="mt-6 rounded-2xl bg-gradient-to-br from-brand/5 via-white to-orange/5 border border-border/60 p-5">
+          <div className="flex items-end justify-between mb-2">
+            <div>
+              <div className="text-[11px] uppercase tracking-wider font-semibold text-slate-soft">Website progress</div>
+              <div className="font-display text-3xl font-bold text-navy">{pct}%</div>
+            </div>
+            <div className="text-right text-xs text-slate-soft">
+              <b className="text-navy font-display text-lg">{done}</b> / {total} sections<br />
+              <span className="text-[11px]">completed</span>
+            </div>
+          </div>
+          <div className="relative h-3 rounded-full bg-white overflow-hidden border border-border/50">
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: `${pct}%` }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="h-full bg-gradient-to-r from-brand via-brand to-orange rounded-full relative"
+            >
+              <div className="absolute inset-0 bg-white/25 animate-pulse" />
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Pages */}
+        {pages.length > 0 && (
+          <div className="mt-6">
+            <div className="text-xs uppercase tracking-wider font-semibold text-slate-soft mb-3">Pages & Features</div>
+            <ul className="space-y-1.5">
+              {pages.map((p, i) => <PageRow key={p.id || i} page={p} depth={0} index={i} />)}
+            </ul>
+          </div>
+        )}
+
+        {/* Notes */}
+        {notes.length > 0 && (
+          <div className="mt-8">
+            <div className="text-xs uppercase tracking-wider font-semibold text-slate-soft mb-3">Important Notes</div>
+            <ol className="space-y-2.5">
+              {notes.map((n, i) => {
+                const warn = n.tone === "warning";
+                return (
+                  <li key={i} className={`rounded-2xl border p-4 flex gap-3 ${warn ? "bg-red-50/60 border-red-200" : "bg-muted/40 border-border"}`}>
+                    <div className={`h-7 w-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${warn ? "bg-red-500 text-white" : "bg-brand/10 text-brand"}`}>
+                      {warn ? <AlertTriangle className="w-3.5 h-3.5" /> : i + 1}
+                    </div>
+                    <div className="min-w-0">
+                      {n.title && <div className={`font-semibold text-sm ${warn ? "text-red-700" : "text-navy"}`}>{n.title}</div>}
+                      <div className={`text-sm mt-0.5 whitespace-pre-line ${warn ? "text-red-700/90" : "text-slate-soft"}`}>{n.body}</div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
+      </div>
+
+      <div className="relative px-6 sm:px-8 py-3 border-t border-border/60 bg-muted/30 flex items-center gap-2 text-[11px] text-slate-soft">
+        <Info className="w-3.5 h-3.5" />
+        <span>A <Lock className="inline w-3 h-3 -mt-0.5" /> lock icon means the page is approved and finalized — no further changes will be made.</span>
+      </div>
+    </motion.section>
+  );
+}
+
+function PageRow({ page, depth, index }: { page: DashPage; depth: number; index: number }) {
+  const [open, setOpen] = useState(true);
+  const hasKids = !!page.children?.length;
+  return (
+    <li>
+      <motion.div
+        initial={{ opacity: 0, x: -6 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: index * 0.03 }}
+        className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 ${page.locked ? "bg-emerald-50/50 border-emerald-200" : page.checked ? "bg-brand/5 border-brand/20" : "bg-white border-border"}`}
+        style={{ marginLeft: depth * 20 }}
+      >
+        {hasKids ? (
+          <button onClick={() => setOpen(!open)} className="h-5 w-5 flex items-center justify-center text-slate-soft hover:text-brand flex-shrink-0">
+            <ChevronDown className={`w-4 h-4 transition-transform ${open ? "" : "-rotate-90"}`} />
+          </button>
+        ) : <span className="w-5 flex-shrink-0" />}
+        <div className={`h-5 w-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors ${page.checked ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-soft/40 bg-white"}`}>
+          {page.checked && <Check className="w-3 h-3" strokeWidth={3} />}
+        </div>
+        <span className={`text-sm flex-1 min-w-0 truncate ${page.checked ? "text-navy font-medium" : "text-slate-soft"} ${page.locked ? "line-through decoration-emerald-500/50" : ""}`}>
+          {page.label}
+        </span>
+        {page.locked && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 rounded-full px-2 py-0.5">
+            <Lock className="w-3 h-3" /> Locked
+          </span>
+        )}
+      </motion.div>
+      {hasKids && open && (
+        <ul className="mt-1.5 space-y-1.5">
+          {page.children!.map((c, i) => <PageRow key={c.id || i} page={c} depth={depth + 1} index={i} />)}
+        </ul>
+      )}
+    </li>
+  );
+}
