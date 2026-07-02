@@ -507,6 +507,58 @@ function SaveBtn({ saving }: { saving: boolean }) {
 
 /* ------------ PAYMENTS ------------ */
 type Inst = { label: string; amount: number; paid?: boolean; paid_at?: string | null };
+type DashPage = { id: string; label: string; checked?: boolean; locked?: boolean; children?: DashPage[] };
+type DashNote = { title?: string; body: string; tone?: "info" | "warning" };
+
+function uid() { return Math.random().toString(36).slice(2, 10); }
+
+const ISKCON_TEMPLATE: DashPage[] = [
+  { id: uid(), label: "Home" },
+  { id: uid(), label: "About", children: [
+    { id: uid(), label: "About ISKCON" },
+    { id: uid(), label: "ISKCON Kurnool" },
+    { id: uid(), label: "Our Mission" },
+    { id: uid(), label: "Founder Acharya" },
+  ]},
+  { id: uid(), label: "Temple", children: [
+    { id: uid(), label: "Temple Timings" },
+    { id: uid(), label: "Sunday Program" },
+    { id: uid(), label: "Upcoming Festivals" },
+    { id: uid(), label: "Goshala" },
+    { id: uid(), label: "Shop" },
+  ]},
+  { id: uid(), label: "Media", children: [
+    { id: uid(), label: "Gallery" },
+    { id: uid(), label: "Social Media" },
+  ]},
+  { id: uid(), label: "Activities", children: [
+    { id: uid(), label: "Youth Program" },
+    { id: uid(), label: "Prahlada Badi" },
+    { id: uid(), label: "Ekadashi Vratam" },
+    { id: uid(), label: "Hari Nama Sankeerthana" },
+  ]},
+  { id: uid(), label: "Courses", children: [
+    { id: uid(), label: "Bhagavad Gita" },
+    { id: uid(), label: "Daily Classes" },
+  ]},
+  { id: uid(), label: "Connect" },
+  { id: uid(), label: "Donate" },
+  { id: uid(), label: "Additional Features", children: [
+    { id: uid(), label: "Admin Panel" },
+    { id: uid(), label: "Language Translation (English / Telugu / Hindi)" },
+    { id: uid(), label: "WhatsApp Floating Icon" },
+    { id: uid(), label: "Footer" },
+  ]},
+];
+
+const DEFAULT_NOTES: DashNote[] = [
+  { title: "Scope of Work", body: "This dashboard reflects the agreed project scope. Any additional pages, sections, features, or functionality requested after project approval will be treated as additional work and may incur additional development charges." },
+  { title: "Content & Data Upload", body: "The project includes website development and an admin panel for content management. We cannot guarantee complete data uploading for the entire website. A dedicated person should upload and maintain the website content. We will provide one complimentary training session (up to 1 hour) on using the admin panel." },
+  { title: "Progress Tracking", body: "The project progress bar is automatically updated based on completed tasks. Each completed section is marked with a checkbox, allowing you to track the current development status at any time." },
+  { title: "Source Code & Access", body: "During the development phase, source code, hosting, server, repository, and other development access will not be shared. Full ownership and access will be handed over only after the website has been completed, approved, and the final payment has been received in full." },
+  { title: "Revisions & Additional Requests", body: "Minor revisions within the agreed scope are included. Any new pages, features, integrations, or design changes beyond the approved scope will be considered additional work and will be quoted separately before implementation." },
+  { title: "Locked Pages", body: "A 🔒 Lock icon indicates that the page or section has been reviewed and approved. Once a page is locked, it is considered finalized, and no further changes or revisions will be made to that page. Any modification requests after a page has been locked may be treated as additional work and may incur extra charges.", tone: "warning" },
+];
 
 function PaymentsTab({ password }: { password: string }) {
   const qc = useQueryClient();
