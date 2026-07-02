@@ -14,7 +14,7 @@ import {
 } from "@/lib/admin.functions";
 import { useAdminAuth, clearAdminPassword } from "@/lib/use-admin";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2, Wallet, Copy, Check, ExternalLink } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2, Wallet, Copy, Check, ExternalLink, Lock, Unlock, ChevronRight, ChevronDown, LayoutDashboard, GripVertical } from "lucide-react";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
