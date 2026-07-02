@@ -220,6 +220,14 @@ function PayPage() {
         <p className="text-center text-xs text-slate-soft mt-6">
           Questions? <a href="https://wa.me/917013906671" className="text-brand font-semibold">WhatsApp us</a>
         </p>
+
+        {payment.dashboard_enabled && (
+          <ProjectDashboard
+            title={payment.dashboard_title || `${payment.title} Dashboard`}
+            pages={Array.isArray(payment.dashboard_pages) ? (payment.dashboard_pages as DashPage[]) : []}
+            notes={Array.isArray(payment.dashboard_notes) ? (payment.dashboard_notes as DashNote[]) : []}
+          />
+        )}
       </main>
 
       <AnimatePresence>
