@@ -89,6 +89,7 @@ export type Database = {
           id: string
           installments: Json
           logo_url: string | null
+          payment_locked: boolean
           slug: string
           status: string
           title: string
@@ -109,6 +110,7 @@ export type Database = {
           id?: string
           installments?: Json
           logo_url?: string | null
+          payment_locked?: boolean
           slug: string
           status?: string
           title: string
@@ -129,6 +131,7 @@ export type Database = {
           id?: string
           installments?: Json
           logo_url?: string | null
+          payment_locked?: boolean
           slug?: string
           status?: string
           title?: string
