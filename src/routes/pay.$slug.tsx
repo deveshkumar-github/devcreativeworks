@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { motion, AnimatePresence } from "motion/react";
 import { getPaymentBySlug } from "@/lib/payments.functions";
-import { CheckCircle2, MessageCircle, QrCode, X, Sparkles, ShieldCheck, Copy, Check } from "lucide-react";
+import { CheckCircle2, MessageCircle, QrCode, X, Sparkles, ShieldCheck, Copy, Check, Lock, ChevronDown, LayoutDashboard, AlertTriangle, Info } from "lucide-react";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
 
 type Installment = {
