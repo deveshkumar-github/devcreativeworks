@@ -11,10 +11,11 @@ import {
   adminListAllTestimonials,
   adminListAllClientLogos,
   adminListAllPayments,
+  adminListSessions,
 } from "@/lib/admin.functions";
 import { useAdminAuth, clearAdminPassword } from "@/lib/use-admin";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2, Wallet, Copy, Check, ExternalLink, Lock, Unlock, ChevronRight, ChevronDown, LayoutDashboard, GripVertical } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2, Wallet, Copy, Check, ExternalLink, Lock, Unlock, ChevronRight, ChevronDown, LayoutDashboard, GripVertical, Calendar, Video, Rocket } from "lucide-react";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
@@ -506,7 +507,9 @@ function SaveBtn({ saving }: { saving: boolean }) {
 }
 
 /* ------------ PAYMENTS ------------ */
-type Inst = { label: string; amount: number; paid?: boolean; paid_at?: string | null };
+type Inst = { label: string; amount: number; paid?: boolean; paid_at?: string | null; due_date?: string | null };
+type SessionSummary = { discussed?: string; decisions?: string; changes?: string; approved?: string; dev_actions?: string; client_actions?: string; next_session?: string; related?: string };
+type MeetSessionRow = { id?: string; payment_id?: string; title?: string; scheduled_at?: string; duration_minutes?: number; agenda?: string | null; related_section?: string | null; meet_link?: string | null; status?: string; participants?: string[] | null; summary?: SessionSummary | null; client_acknowledged?: boolean };
 type DashPage = { id: string; label: string; checked?: boolean; locked?: boolean; children?: DashPage[] };
 type DashNote = { title?: string; body: string; tone?: "info" | "warning" };
 
@@ -567,6 +570,7 @@ function PaymentsTab({ password }: { password: string }) {
   const del = useServerFn(adminDelete);
   const { data } = useQuery({ queryKey: ["admin-payments"], queryFn: () => list({ data: { password } }) });
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
+  const [sessionsFor, setSessionsFor] = useState<Record<string, unknown> | null>(null);
 
   const save = useMutation({
     mutationFn: (row: Record<string, unknown>) => upsert({ data: { password, table: "payments", row } }),
@@ -608,6 +612,7 @@ function PaymentsTab({ password }: { password: string }) {
                 <div className="flex items-center gap-2">
                   <CopyBtn text={url} />
                   <a href={url} target="_blank" rel="noreferrer" className="h-9 w-9 rounded-lg bg-muted hover:bg-brand/10 hover:text-brand text-slate-soft flex items-center justify-center"><ExternalLink className="w-4 h-4" /></a>
+                  <button onClick={() => setSessionsFor(p as Record<string, unknown>)} title="Sessions" className="h-9 w-9 rounded-lg bg-muted hover:bg-brand/10 hover:text-brand text-slate-soft flex items-center justify-center"><Video className="w-4 h-4" /></button>
                   <button onClick={() => setEditing(p as Record<string, unknown>)} className="h-9 w-9 rounded-lg bg-muted hover:bg-brand/10 hover:text-brand text-slate-soft flex items-center justify-center"><Pencil className="w-4 h-4" /></button>
                   <button onClick={() => { if (confirm("Delete payment page?")) remove.mutate(p.id as string); }} className="h-9 w-9 rounded-lg bg-muted hover:bg-red-50 hover:text-red-600 text-slate-soft flex items-center justify-center"><Trash2 className="w-4 h-4" /></button>
                 </div>
@@ -619,6 +624,11 @@ function PaymentsTab({ password }: { password: string }) {
       {editing && (
         <Modal title={editing.id ? "Edit payment page" : "New payment page"} onClose={() => setEditing(null)}>
           <PaymentForm initial={editing} onSubmit={(r) => save.mutate(r)} saving={save.isPending} password={password} />
+        </Modal>
+      )}
+      {sessionsFor && (
+        <Modal title={`Sessions · ${sessionsFor.title as string}`} onClose={() => setSessionsFor(null)}>
+          <SessionsManager paymentId={sessionsFor.id as string} password={password} />
         </Modal>
       )}
     </div>
@@ -655,6 +665,7 @@ function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<
     whatsapp_number: (initial.whatsapp_number as string) || "917013906671",
     status: (initial.status as string) || "active",
     payment_locked: !!initial.payment_locked,
+    launch_at: toLocalInput((initial.launch_at as string) || ""),
   });
   const [insts, setInsts] = useState<Inst[]>(Array.isArray(initial.installments) ? (initial.installments as Inst[]) : []);
   const [dashEnabled, setDashEnabled] = useState<boolean>(!!initial.dashboard_enabled);
@@ -666,7 +677,7 @@ function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<
 
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); onSubmit({ ...f, slug: f.slug || slugify(f.title), installments: insts, dashboard_enabled: dashEnabled, dashboard_title: dashTitle, dashboard_pages: pages, dashboard_notes: notes }); }}
+      onSubmit={(e) => { e.preventDefault(); onSubmit({ ...f, launch_at: f.launch_at ? new Date(f.launch_at).toISOString() : null, slug: f.slug || slugify(f.title), installments: insts, dashboard_enabled: dashEnabled, dashboard_title: dashTitle, dashboard_pages: pages, dashboard_notes: notes }); }}
       className="space-y-4"
     >
       <FieldRow label="Title *"><TextInput value={f.title} onChange={(v) => setF({ ...f, title: v, slug: f.slug || slugify(v) })} required /></FieldRow>
@@ -698,6 +709,12 @@ function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<
         </div>
       </label>
 
+      <div className="rounded-2xl border border-border bg-gradient-to-br from-brand/5 to-orange/5 p-4">
+        <div className="font-semibold text-navy text-sm inline-flex items-center gap-1.5 mb-2"><Rocket className="w-4 h-4 text-brand" /> Website launch date</div>
+        <div className="text-xs text-slate-soft mb-2">Leave empty to show "Coming Soon" on the client page.</div>
+        <input type="datetime-local" value={f.launch_at} onChange={(e) => setF({ ...f, launch_at: e.target.value })} className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm focus:outline-none focus:border-brand" />
+      </div>
+
       <div className="rounded-2xl border border-border bg-muted/30 p-4">
         <div className="flex items-center justify-between mb-3">
           <div>
@@ -711,14 +728,28 @@ function PaymentForm({ initial, onSubmit, saving, password }: { initial: Record<
         <div className="space-y-2">
           {insts.length === 0 && <div className="text-xs text-slate-soft text-center py-3">No installments yet — split the total into milestones (e.g. 50% advance, 50% on delivery).</div>}
           {insts.map((inst, i) => (
-            <div key={i} className="grid grid-cols-12 gap-2 items-center bg-white rounded-xl border border-border p-2">
-              <input value={inst.label} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} placeholder="Label" className="col-span-5 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:border-brand focus:bg-white" />
-              <input type="number" value={inst.amount} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, amount: Number(e.target.value) || 0 } : x))} placeholder="Amount" className="col-span-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:border-brand focus:bg-white" />
-              <label className="col-span-3 inline-flex items-center gap-1.5 text-xs text-slate-soft">
-                <input type="checkbox" checked={!!inst.paid} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, paid: e.target.checked, paid_at: e.target.checked ? (x.paid_at || new Date().toISOString()) : null } : x))} className="accent-brand" />
-                Paid
-              </label>
-              <button type="button" onClick={() => setInsts(insts.filter((_, j) => j !== i))} className="col-span-1 h-8 w-8 rounded-lg bg-muted hover:bg-red-50 hover:text-red-600 text-slate-soft flex items-center justify-center"><Trash2 className="w-3.5 h-3.5" /></button>
+            <div key={i} className="bg-white rounded-xl border border-border p-2 space-y-1.5">
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <input value={inst.label} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} placeholder="Label" className="col-span-5 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:border-brand focus:bg-white" />
+                <input type="number" value={inst.amount} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, amount: Number(e.target.value) || 0 } : x))} placeholder="Amount" className="col-span-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:border-brand focus:bg-white" />
+                <label className="col-span-3 inline-flex items-center gap-1.5 text-xs text-slate-soft">
+                  <input type="checkbox" checked={!!inst.paid} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, paid: e.target.checked, paid_at: e.target.checked ? (x.paid_at || new Date().toISOString()) : null } : x))} className="accent-brand" />
+                  Paid
+                </label>
+                <button type="button" onClick={() => setInsts(insts.filter((_, j) => j !== i))} className="col-span-1 h-8 w-8 rounded-lg bg-muted hover:bg-red-50 hover:text-red-600 text-slate-soft flex items-center justify-center"><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
+              <div className="grid grid-cols-12 gap-2">
+                <label className="col-span-6 text-[10px] uppercase tracking-wider text-slate-soft font-semibold">
+                  Due date
+                  <input type="date" value={inst.due_date ? inst.due_date.slice(0,10) : ""} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, due_date: e.target.value || null } : x))} className="mt-0.5 w-full rounded-lg border border-border bg-muted/30 px-2 py-1.5 text-xs focus:outline-none focus:border-brand focus:bg-white normal-case tracking-normal" />
+                </label>
+                {inst.paid && (
+                  <label className="col-span-6 text-[10px] uppercase tracking-wider text-slate-soft font-semibold">
+                    Paid on
+                    <input type="date" value={inst.paid_at ? inst.paid_at.slice(0,10) : ""} onChange={(e) => setInsts(insts.map((x, j) => j === i ? { ...x, paid_at: e.target.value ? new Date(e.target.value).toISOString() : null } : x))} className="mt-0.5 w-full rounded-lg border border-border bg-muted/30 px-2 py-1.5 text-xs focus:outline-none focus:border-brand focus:bg-white normal-case tracking-normal" />
+                  </label>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -872,3 +903,151 @@ function PageEditor({ page, depth, onChange, onDelete }: { page: DashPage; depth
 function countAll(p: DashPage[]): number { let n = 0; for (const x of p) { n++; if (x.children) n += countAll(x.children); } return n; }
 function countChecked(p: DashPage[]): number { let n = 0; for (const x of p) { if (x.checked) n++; if (x.children) n += countChecked(x.children); } return n; }
 function cloneWithIds(p: DashPage[]): DashPage[] { return p.map(x => ({ ...x, id: uid(), children: x.children ? cloneWithIds(x.children) : undefined })); }
+
+function toLocalInput(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/* ------------ SESSIONS MANAGER ------------ */
+function SessionsManager({ paymentId, password }: { paymentId: string; password: string }) {
+  const qc = useQueryClient();
+  const list = useServerFn(adminListSessions);
+  const upsert = useServerFn(adminUpsert);
+  const del = useServerFn(adminDelete);
+  const { data } = useQuery({ queryKey: ["admin-sessions", paymentId], queryFn: () => list({ data: { password, payment_id: paymentId } }) });
+  const [editing, setEditing] = useState<MeetSessionRow | null>(null);
+
+  const save = useMutation({
+    mutationFn: (row: Record<string, unknown>) => upsert({ data: { password, table: "sessions", row: { ...row, payment_id: paymentId } } }),
+    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["admin-sessions", paymentId] }); setEditing(null); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => del({ data: { password, table: "sessions", id } }),
+    onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["admin-sessions", paymentId] }); },
+  });
+
+  const rows = (data ?? []) as MeetSessionRow[];
+  const now = Date.now();
+  const upcoming = rows.filter((s) => s.scheduled_at && new Date(s.scheduled_at).getTime() + (s.duration_minutes || 30) * 60000 > now);
+  const done = rows.filter((s) => s.scheduled_at && new Date(s.scheduled_at).getTime() + (s.duration_minutes || 30) * 60000 <= now);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm text-slate-soft">Google Meet sessions for this project</div>
+        <button onClick={() => setEditing({ title: "", scheduled_at: "", duration_minutes: 30 })} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-brand text-white px-3 py-2 text-xs font-semibold"><Plus className="w-4 h-4" /> New session</button>
+      </div>
+      <div className="space-y-4">
+        <SessionGroup label={`Upcoming (${upcoming.length})`} rows={upcoming} onEdit={setEditing} onDelete={(id) => { if (confirm("Delete session?")) remove.mutate(id); }} />
+        <SessionGroup label={`Completed (${done.length})`} rows={done} onEdit={setEditing} onDelete={(id) => { if (confirm("Delete session?")) remove.mutate(id); }} />
+      </div>
+      {editing && (
+        <Modal title={editing.id ? "Edit session" : "New session"} onClose={() => setEditing(null)}>
+          <SessionForm initial={editing} saving={save.isPending} onSubmit={(r) => save.mutate(r)} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function SessionGroup({ label, rows, onEdit, onDelete }: { label: string; rows: MeetSessionRow[]; onEdit: (r: MeetSessionRow) => void; onDelete: (id: string) => void }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-widest text-slate-soft font-semibold mb-2">{label}</div>
+      {rows.length === 0 && <div className="text-xs text-slate-soft bg-muted/40 rounded-xl p-3 text-center">None</div>}
+      <div className="space-y-2">
+        {rows.map((s) => {
+          const d = s.scheduled_at ? new Date(s.scheduled_at) : null;
+          return (
+            <div key={s.id} className="bg-white border border-border rounded-xl p-3 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-brand/10 flex items-center justify-center flex-shrink-0"><Calendar className="w-4 h-4 text-brand" /></div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-navy text-sm truncate">{s.title || "Untitled session"}</div>
+                <div className="text-xs text-slate-soft truncate">{d ? d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "No date"} · {s.duration_minutes || 30}min {s.related_section ? `· § ${s.related_section}` : ""}</div>
+              </div>
+              <button onClick={() => onEdit(s)} className="h-8 w-8 rounded-lg bg-muted hover:bg-brand/10 hover:text-brand text-slate-soft flex items-center justify-center"><Pencil className="w-4 h-4" /></button>
+              <button onClick={() => onDelete(s.id!)} className="h-8 w-8 rounded-lg bg-muted hover:bg-red-50 hover:text-red-600 text-slate-soft flex items-center justify-center"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SessionForm({ initial, onSubmit, saving }: { initial: MeetSessionRow; onSubmit: (r: Record<string, unknown>) => void; saving: boolean }) {
+  const [f, setF] = useState({
+    id: initial.id,
+    title: initial.title || "",
+    scheduled_at: toLocalInput(initial.scheduled_at || ""),
+    duration_minutes: initial.duration_minutes || 30,
+    agenda: initial.agenda || "",
+    related_section: initial.related_section || "",
+    meet_link: initial.meet_link || "",
+    participants: (initial.participants || []).join(", "),
+    client_acknowledged: !!initial.client_acknowledged,
+  });
+  const [summary, setSummary] = useState<SessionSummary>(initial.summary || {});
+  const isPast = f.scheduled_at && new Date(f.scheduled_at).getTime() + (f.duration_minutes) * 60000 <= Date.now();
+
+  const fields: Array<[keyof SessionSummary, string]> = [
+    ["discussed", "What we discussed"],
+    ["decisions", "Decisions made"],
+    ["changes", "Changes requested"],
+    ["approved", "Client approved"],
+    ["dev_actions", "Developer action items"],
+    ["client_actions", "Client action items"],
+    ["next_session", "Next session / follow-up"],
+    ["related", "Related sections"],
+  ];
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit({
+      ...f,
+      scheduled_at: f.scheduled_at ? new Date(f.scheduled_at).toISOString() : null,
+      participants: f.participants.split(",").map(s => s.trim()).filter(Boolean),
+      summary,
+      status: isPast ? (Object.values(summary).some(Boolean) ? "summary_added" : "completed") : "scheduled",
+    }); }} className="space-y-4">
+      <FieldRow label="Session title *"><TextInput value={f.title} onChange={(v) => setF({ ...f, title: v })} placeholder="About Section Review" required /></FieldRow>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <FieldRow label="Date & time *">
+          <input type="datetime-local" required value={f.scheduled_at} onChange={(e) => setF({ ...f, scheduled_at: e.target.value })} className="w-full rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm focus:outline-none focus:border-brand focus:bg-white" />
+        </FieldRow>
+        <FieldRow label="Duration (minutes)"><TextInput type="number" value={String(f.duration_minutes)} onChange={(v) => setF({ ...f, duration_minutes: Number(v) || 30 })} /></FieldRow>
+      </div>
+      <FieldRow label="Purpose / agenda"><TextArea value={f.agenda} onChange={(v) => setF({ ...f, agenda: v })} /></FieldRow>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <FieldRow label="Related website section"><TextInput value={f.related_section} onChange={(v) => setF({ ...f, related_section: v })} placeholder="About / Temple / Media…" /></FieldRow>
+        <FieldRow label="Google Meet link"><TextInput value={f.meet_link} onChange={(v) => setF({ ...f, meet_link: v })} placeholder="https://meet.google.com/…" /></FieldRow>
+      </div>
+      <FieldRow label="Participants (comma-separated)"><TextInput value={f.participants} onChange={(v) => setF({ ...f, participants: v })} placeholder="Devesh, Client Name" /></FieldRow>
+
+      <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="font-semibold text-navy text-sm">Post-session summary</div>
+          <div className="text-[10px] uppercase tracking-widest text-slate-soft">{isPast ? "Session ended" : "Fill after the session"}</div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {fields.map(([k, label]) => (
+            <label key={k} className="text-xs font-semibold text-slate-soft uppercase tracking-wider">
+              {label}
+              <textarea value={summary[k] || ""} onChange={(e) => setSummary({ ...summary, [k]: e.target.value })} rows={2} className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm normal-case tracking-normal font-normal text-navy focus:outline-none focus:border-brand" />
+            </label>
+          ))}
+        </div>
+        <label className="inline-flex items-center gap-2 text-sm text-navy">
+          <input type="checkbox" checked={f.client_acknowledged} onChange={(e) => setF({ ...f, client_acknowledged: e.target.checked })} className="accent-emerald-500 w-4 h-4" />
+          Client acknowledged ✓
+        </label>
+      </div>
+
+      <SaveBtn saving={saving} />
+    </form>
+  );
+}

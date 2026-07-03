@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { motion, AnimatePresence } from "motion/react";
 import { getPaymentBySlug } from "@/lib/payments.functions";
-import { CheckCircle2, MessageCircle, QrCode, X, Sparkles, ShieldCheck, Copy, Check, Lock, ChevronDown, LayoutDashboard, AlertTriangle, Info, Wallet } from "lucide-react";
+import { CheckCircle2, MessageCircle, QrCode, X, Sparkles, ShieldCheck, Copy, Check, Lock, ChevronDown, LayoutDashboard, AlertTriangle, Info, Wallet, Calendar, Video, Rocket, Clock, Users, ClipboardList } from "lucide-react";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
 
 type Installment = {
@@ -12,6 +12,7 @@ type Installment = {
   amount: number;
   paid?: boolean;
   paid_at?: string | null;
+  due_date?: string | null;
 };
 
 type DashPage = {
@@ -23,6 +24,31 @@ type DashPage = {
 };
 
 type DashNote = { title?: string; body: string; tone?: "info" | "warning" };
+
+type SessionSummary = {
+  discussed?: string;
+  decisions?: string;
+  changes?: string;
+  approved?: string;
+  dev_actions?: string;
+  client_actions?: string;
+  next_session?: string;
+  related?: string;
+};
+
+type MeetSession = {
+  id: string;
+  title: string;
+  scheduled_at: string;
+  duration_minutes?: number;
+  agenda?: string | null;
+  related_section?: string | null;
+  meet_link?: string | null;
+  status?: string;
+  participants?: string[];
+  summary?: SessionSummary | null;
+  client_acknowledged?: boolean;
+};
 
 export const Route = createFileRoute("/pay/$slug")({
   loader: async ({ params }) => {
@@ -61,6 +87,8 @@ function formatINR(n: number) {
 function PayPage() {
   const { payment } = Route.useLoaderData();
   const installments: Installment[] = Array.isArray(payment.installments) ? (payment.installments as Installment[]) : [];
+  const sessions: MeetSession[] = Array.isArray((payment as { sessions?: MeetSession[] }).sessions) ? ((payment as { sessions?: MeetSession[] }).sessions as MeetSession[]) : [];
+  const launchAt = (payment as { launch_at?: string | null }).launch_at || null;
 
   const total = Number(payment.total_amount) || 0;
   const paidAmount = installments.filter((i) => i.paid).reduce((a, b) => a + Number(b.amount || 0), 0);
@@ -94,6 +122,10 @@ function PayPage() {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const now = Date.now();
+  const upcomingSessions = sessions.filter((s) => new Date(s.scheduled_at).getTime() + (s.duration_minutes || 30) * 60000 > now);
+  const completedSessions = sessions.filter((s) => new Date(s.scheduled_at).getTime() + (s.duration_minutes || 30) * 60000 <= now).reverse();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f6f8ff] via-white to-[#fff7ed]">
       <header className="mx-auto max-w-3xl px-4 sm:px-6 pt-5 pb-3 flex items-center justify-between gap-3">
@@ -112,12 +144,15 @@ function PayPage() {
       {/* Top nav tabs */}
       {payment.dashboard_enabled && (
         <nav className="sticky top-0 z-20 mx-auto max-w-3xl px-4 sm:px-6 pt-1 pb-3 bg-gradient-to-b from-white/95 to-white/70 backdrop-blur-md">
-          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white border border-border p-1.5 shadow-soft">
+          <div className="grid grid-cols-3 gap-1.5 rounded-2xl bg-white border border-border p-1.5 shadow-soft">
             <button onClick={() => scrollTo("pay-section")} className="rounded-xl py-2.5 text-sm font-semibold text-navy hover:bg-brand/5 inline-flex items-center justify-center gap-1.5">
-              <Wallet className="w-4 h-4 text-brand" /> Payment
+              <Wallet className="w-4 h-4 text-brand" /> <span className="hidden xs:inline sm:inline">Payment</span><span className="xs:hidden sm:hidden">Pay</span>
             </button>
             <button onClick={() => scrollTo("dashboard-section")} className="rounded-xl py-2.5 text-sm font-semibold text-navy hover:bg-brand/5 inline-flex items-center justify-center gap-1.5">
-              <LayoutDashboard className="w-4 h-4 text-brand" /> Your Dashboard
+              <LayoutDashboard className="w-4 h-4 text-brand" /> <span className="hidden sm:inline">Dashboard</span><span className="sm:hidden">Board</span>
+            </button>
+            <button onClick={() => scrollTo("sessions-section")} className="rounded-xl py-2.5 text-sm font-semibold text-navy hover:bg-brand/5 inline-flex items-center justify-center gap-1.5">
+              <Video className="w-4 h-4 text-brand" /> Sessions
             </button>
           </div>
         </nav>
@@ -211,8 +246,9 @@ function PayPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-navy text-sm sm:text-base truncate">{inst.label}</div>
-                          <div className="text-xs text-slate-soft">
-                            {paid ? `Received${inst.paid_at ? ` · ${new Date(inst.paid_at).toLocaleDateString()}` : ""}` : "Pending"}
+                          <div className="text-xs text-slate-soft flex flex-wrap gap-x-2">
+                            <span>{paid ? `Received${inst.paid_at ? ` · ${new Date(inst.paid_at).toLocaleDateString()}` : ""}` : "Pending"}</span>
+                            {inst.due_date && !paid && <span className="inline-flex items-center gap-1"><Calendar className="w-3 h-3" /> Due {new Date(inst.due_date).toLocaleDateString()}</span>}
                           </div>
                         </div>
                         <div className="text-right">
@@ -285,6 +321,8 @@ function PayPage() {
           Questions? <a href="https://wa.me/917013906671" className="text-brand font-semibold">WhatsApp us</a>
         </p>
 
+        <LaunchCard launchAt={launchAt} />
+
         {payment.dashboard_enabled && (
           <div id="dashboard-section" style={{ scrollMarginTop: 88 }}>
             <ProjectDashboard
@@ -294,6 +332,10 @@ function PayPage() {
             />
           </div>
         )}
+
+        <div id="sessions-section" style={{ scrollMarginTop: 88 }}>
+          <SessionsSection upcoming={upcomingSessions} completed={completedSessions} />
+        </div>
       </main>
 
       <AnimatePresence>
@@ -327,6 +369,164 @@ function PayPage() {
 }
 
 function ImportantNotesModal({ notes, projectTitle, onAgree }: { notes: DashNote[]; projectTitle: string; onAgree: () => void }) {
+  return _ImportantNotesModal({ notes, projectTitle, onAgree });
+}
+
+function LaunchCard({ launchAt }: { launchAt: string | null }) {
+  const date = launchAt ? new Date(launchAt) : null;
+  const valid = date && !isNaN(date.getTime());
+  const now = new Date();
+  const diff = valid ? date!.getTime() - now.getTime() : 0;
+  const days = Math.max(0, Math.floor(diff / 86400000));
+  const hours = Math.max(0, Math.floor((diff % 86400000) / 3600000));
+  const launched = valid && diff <= 0;
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      className="mt-10 relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy via-[#183b56] to-brand text-white p-6 sm:p-8 shadow-glow"
+    >
+      <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-orange/40 blur-3xl" />
+      <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-brand/60 blur-3xl" />
+      <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
+        <motion.div
+          animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 2.6, ease: "easeInOut" }}
+          className="h-16 w-16 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center flex-shrink-0 border border-white/20"
+        >
+          <Rocket className="w-8 h-8" />
+        </motion.div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] uppercase tracking-[0.2em] opacity-80">Website Launch Date</div>
+          {!valid ? (
+            <>
+              <div className="font-display text-2xl sm:text-3xl font-bold">Coming Soon</div>
+              <div className="text-sm opacity-80 mt-1">The launch date will be shared soon. Stay tuned.</div>
+            </>
+          ) : launched ? (
+            <>
+              <div className="font-display text-2xl sm:text-3xl font-bold">🎉 Launched!</div>
+              <div className="text-sm opacity-90 mt-1">{date!.toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" })}</div>
+            </>
+          ) : (
+            <>
+              <div className="font-display text-2xl sm:text-3xl font-bold">{date!.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
+              <div className="text-sm opacity-90 mt-1 inline-flex items-center gap-1.5"><Clock className="w-4 h-4" /> {date!.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} · in {days}d {hours}h</div>
+            </>
+          )}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+function SessionsSection({ upcoming, completed }: { upcoming: MeetSession[]; completed: MeetSession[] }) {
+  return (
+    <section className="mt-10">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="h-9 w-9 rounded-xl bg-brand/10 flex items-center justify-center"><Calendar className="w-5 h-5 text-brand" /></div>
+        <div>
+          <h2 className="font-display font-bold text-xl text-navy leading-tight">Google Meet Sessions</h2>
+          <div className="text-xs text-slate-soft">Scheduled reviews & call summaries</div>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <div className="text-[11px] uppercase tracking-widest text-slate-soft font-semibold">Upcoming ({upcoming.length})</div>
+        {upcoming.length === 0 && <EmptySession label="No upcoming sessions yet" />}
+        {upcoming.map((s) => <SessionCard key={s.id} s={s} state="upcoming" />)}
+
+        <div className="text-[11px] uppercase tracking-widest text-slate-soft font-semibold pt-4">Completed ({completed.length})</div>
+        {completed.length === 0 && <EmptySession label="No completed sessions yet" />}
+        {completed.map((s) => <SessionCard key={s.id} s={s} state="completed" />)}
+      </div>
+    </section>
+  );
+}
+
+function EmptySession({ label }: { label: string }) {
+  return <div className="rounded-2xl border border-dashed border-border bg-white/60 p-5 text-center text-sm text-slate-soft">{label}</div>;
+}
+
+function SessionCard({ s, state }: { s: MeetSession; state: "upcoming" | "completed" }) {
+  const [open, setOpen] = useState(state === "upcoming");
+  const d = new Date(s.scheduled_at);
+  const summary = s.summary || {};
+  const hasSummary = summary && Object.values(summary).some(Boolean);
+  const fields: Array<[keyof SessionSummary, string, string]> = [
+    ["discussed", "What we discussed", "💬"],
+    ["decisions", "Decisions made", "✅"],
+    ["changes", "Changes requested", "✏️"],
+    ["approved", "Client approved", "👍"],
+    ["dev_actions", "Developer action items", "🛠️"],
+    ["client_actions", "Client action items", "📋"],
+    ["next_session", "Next session / follow-up", "🔁"],
+    ["related", "Related sections", "🔗"],
+  ];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      className={`rounded-2xl border p-4 ${state === "upcoming" ? "bg-white border-brand/20 shadow-soft" : "bg-muted/40 border-border"}`}
+    >
+      <button onClick={() => setOpen(!open)} className="w-full text-left flex items-start gap-3">
+        <div className={`h-11 w-11 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${state === "upcoming" ? "bg-gradient-brand text-white" : "bg-navy/80 text-white"}`}>
+          <span className="text-[10px] uppercase leading-none opacity-80">{d.toLocaleString("en-IN", { month: "short" })}</span>
+          <span className="text-lg font-bold leading-tight">{d.getDate()}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-navy text-sm sm:text-base">{s.title}</span>
+            <StatusPill state={state} hasSummary={hasSummary} acknowledged={!!s.client_acknowledged} />
+          </div>
+          <div className="text-xs text-slate-soft mt-0.5 inline-flex items-center gap-1.5"><Clock className="w-3 h-3" /> {d.toLocaleString("en-IN", { hour: "2-digit", minute: "2-digit" })} · {s.duration_minutes || 30} min</div>
+          {s.related_section && <div className="text-xs text-brand mt-0.5">§ {s.related_section}</div>}
+        </div>
+        <ChevronDown className={`w-4 h-4 text-slate-soft transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="pt-3 mt-3 border-t border-border space-y-3">
+              {s.agenda && (
+                <div><div className="text-[11px] uppercase tracking-widest text-slate-soft font-semibold mb-1 inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" /> Agenda</div><div className="text-sm text-navy whitespace-pre-line">{s.agenda}</div></div>
+              )}
+              {s.participants && s.participants.length > 0 && (
+                <div className="text-xs text-slate-soft inline-flex items-center gap-1.5 flex-wrap"><Users className="w-3 h-3" /> {s.participants.join(", ")}</div>
+              )}
+              {state === "upcoming" && s.meet_link && (
+                <a href={s.meet_link} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-xl bg-[#00897B] text-white px-5 py-3 text-sm font-semibold hover:bg-[#00695C] transition-colors">
+                  <Video className="w-4 h-4" /> Join Google Meet
+                </a>
+              )}
+              {state === "completed" && hasSummary && (
+                <div className="rounded-xl bg-white border border-border p-3 space-y-2.5">
+                  <div className="text-[11px] uppercase tracking-widest text-brand font-semibold">Session summary</div>
+                  {fields.map(([k, label, emoji]) => summary[k] ? (
+                    <div key={k}>
+                      <div className="text-xs font-semibold text-navy">{emoji} {label}</div>
+                      <div className="text-sm text-slate-soft whitespace-pre-line mt-0.5">{summary[k]}</div>
+                    </div>
+                  ) : null)}
+                  {s.client_acknowledged && <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 pt-1"><CheckCircle2 className="w-4 h-4" /> Client acknowledged</div>}
+                </div>
+              )}
+              {state === "completed" && !hasSummary && (
+                <div className="text-xs text-slate-soft italic">Summary will be shared soon.</div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function StatusPill({ state, hasSummary, acknowledged }: { state: "upcoming" | "completed"; hasSummary: boolean; acknowledged: boolean }) {
+  if (state === "upcoming") return <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 text-brand px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">Scheduled</span>;
+  if (acknowledged) return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">Acknowledged</span>;
+  if (hasSummary) return <span className="inline-flex items-center gap-1 rounded-full bg-navy/10 text-navy px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">Summary added</span>;
+  return <span className="inline-flex items-center gap-1 rounded-full bg-muted text-slate-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">Completed</span>;
+}
+
+function _ImportantNotesModal({ notes, projectTitle, onAgree }: { notes: DashNote[]; projectTitle: string; onAgree: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}

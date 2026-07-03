@@ -88,6 +88,7 @@ export type Database = {
           description: string | null
           id: string
           installments: Json
+          launch_at: string | null
           logo_url: string | null
           payment_locked: boolean
           slug: string
@@ -109,6 +110,7 @@ export type Database = {
           description?: string | null
           id?: string
           installments?: Json
+          launch_at?: string | null
           logo_url?: string | null
           payment_locked?: boolean
           slug: string
@@ -130,6 +132,7 @@ export type Database = {
           description?: string | null
           id?: string
           installments?: Json
+          launch_at?: string | null
           logo_url?: string | null
           payment_locked?: boolean
           slug?: string
@@ -232,6 +235,68 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sessions: {
+        Row: {
+          agenda: string | null
+          client_acknowledged: boolean
+          created_at: string
+          duration_minutes: number
+          id: string
+          meet_link: string | null
+          participants: Json
+          payment_id: string
+          related_section: string | null
+          scheduled_at: string
+          sort_order: number
+          status: string
+          summary: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agenda?: string | null
+          client_acknowledged?: boolean
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          meet_link?: string | null
+          participants?: Json
+          payment_id: string
+          related_section?: string | null
+          scheduled_at: string
+          sort_order?: number
+          status?: string
+          summary?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agenda?: string | null
+          client_acknowledged?: boolean
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          meet_link?: string | null
+          participants?: Json
+          payment_id?: string
+          related_section?: string | null
+          scheduled_at?: string
+          sort_order?: number
+          status?: string
+          summary?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       testimonials: {
         Row: {
