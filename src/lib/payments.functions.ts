@@ -16,5 +16,12 @@ export const getPaymentBySlug = createServerFn({ method: "GET" })
       .eq("status", "active")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return row;
+    if (!row) return null;
+    const { data: sessions, error: se } = await supabase
+      .from("sessions")
+      .select("*")
+      .eq("payment_id", row.id)
+      .order("scheduled_at", { ascending: true });
+    if (se) throw new Error(se.message);
+    return { ...row, sessions: sessions ?? [] };
   });
