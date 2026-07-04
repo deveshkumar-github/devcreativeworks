@@ -128,60 +128,66 @@ function PayPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f6f8ff] via-white to-[#fff7ed]">
-      <header className="mx-auto max-w-3xl px-4 sm:px-6 pt-5 pb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <img src={logoAsset.url} className="h-9 w-9 object-contain" alt="" />
-          <div className="min-w-0">
-            <div className="font-display font-bold text-navy text-sm leading-tight">Dev Creative Works</div>
-            <div className="text-[11px] text-slate-soft leading-tight flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Secure payment</div>
+      {/* Sticky top bar with brand + help */}
+      <div className="sticky top-0 z-30 backdrop-blur-md bg-white/80 border-b border-border/60">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <img src={logoAsset.url} className="h-9 w-9 object-contain shrink-0" alt="" />
+            <div className="min-w-0">
+              <div className="font-display font-bold text-navy text-sm leading-tight truncate">Dev Creative Works</div>
+              <div className="text-[11px] text-slate-soft leading-tight flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Secure client portal</div>
+            </div>
           </div>
+          <a href="https://wa.me/917013906671" className="shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-full px-3 py-1.5 inline-flex items-center gap-1.5">
+            <MessageCircle className="w-3.5 h-3.5" /> Help
+          </a>
         </div>
-        <a href="https://wa.me/917013906671" className="shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-full px-3 py-1.5 inline-flex items-center gap-1.5">
-          <MessageCircle className="w-3.5 h-3.5" /> Help
-        </a>
-      </header>
+        {/* Section tabs */}
+        {payment.dashboard_enabled && (
+          <nav className="mx-auto max-w-3xl px-4 sm:px-6 pb-3">
+            <div className="grid grid-cols-3 gap-1 rounded-2xl bg-muted/60 border border-border p-1">
+              <TabButton onClick={() => scrollTo("pay-section")} icon={<Wallet className="w-4 h-4" />} label="Payment" />
+              <TabButton onClick={() => scrollTo("dashboard-section")} icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
+              <TabButton onClick={() => scrollTo("sessions-section")} icon={<Video className="w-4 h-4" />} label="Sessions" />
+            </div>
+          </nav>
+        )}
+      </div>
 
-      {/* Top nav tabs */}
-      {payment.dashboard_enabled && (
-        <nav className="sticky top-0 z-20 mx-auto max-w-3xl px-4 sm:px-6 pt-1 pb-3 bg-gradient-to-b from-white/95 to-white/70 backdrop-blur-md">
-          <div className="grid grid-cols-3 gap-1.5 rounded-2xl bg-white border border-border p-1.5 shadow-soft">
-            <button onClick={() => scrollTo("pay-section")} className="rounded-xl py-2.5 text-sm font-semibold text-navy hover:bg-brand/5 inline-flex items-center justify-center gap-1.5">
-              <Wallet className="w-4 h-4 text-brand" /> <span className="hidden xs:inline sm:inline">Payment</span><span className="xs:hidden sm:hidden">Pay</span>
-            </button>
-            <button onClick={() => scrollTo("dashboard-section")} className="rounded-xl py-2.5 text-sm font-semibold text-navy hover:bg-brand/5 inline-flex items-center justify-center gap-1.5">
-              <LayoutDashboard className="w-4 h-4 text-brand" /> <span className="hidden sm:inline">Dashboard</span><span className="sm:hidden">Board</span>
-            </button>
-            <button onClick={() => scrollTo("sessions-section")} className="rounded-xl py-2.5 text-sm font-semibold text-navy hover:bg-brand/5 inline-flex items-center justify-center gap-1.5">
-              <Video className="w-4 h-4 text-brand" /> Sessions
-            </button>
-          </div>
-        </nav>
-      )}
-
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 pb-16">
-        {/* Card */}
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 pt-6 pb-16 space-y-8">
+        {/* HERO — project identity */}
         <motion.section
           id="pay-section"
-          style={{ scrollMarginTop: 88 }}
+          style={{ scrollMarginTop: 120 }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl bg-white border border-border/70 shadow-[0_20px_60px_-30px_rgba(21,101,216,0.35)]"
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy via-[#1e4a75] to-brand text-white shadow-[0_20px_60px_-30px_rgba(21,101,216,0.5)]"
         >
-          <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-brand/10 blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-orange/10 blur-3xl" />
-
+          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-orange/30 blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-brand/40 blur-3xl" />
           <div className="relative p-6 sm:p-8">
             <div className="flex items-start gap-4">
               {payment.logo_url ? (
-                <img src={payment.logo_url} alt="" className="h-14 w-14 rounded-xl object-contain bg-muted p-1.5 border border-border" />
+                <img src={payment.logo_url} alt="" className="h-16 w-16 rounded-2xl object-contain bg-white p-2 border border-white/20 shrink-0" />
               ) : (
-                <div className="h-14 w-14 rounded-xl bg-gradient-brand flex items-center justify-center text-white"><Sparkles className="w-6 h-6" /></div>
+                <div className="h-16 w-16 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center border border-white/20 shrink-0"><Sparkles className="w-7 h-7" /></div>
               )}
-              <div className="flex-1 min-w-0">
-                <h1 className="font-display font-bold text-navy text-xl sm:text-2xl leading-tight">{payment.title}</h1>
-                {payment.description && <p className="text-sm text-slate-soft mt-1 whitespace-pre-line">{payment.description}</p>}
+              <div className="min-w-0 flex-1">
+                <div className="text-[11px] uppercase tracking-[0.2em] opacity-70">Client project portal</div>
+                <h1 className="font-display font-bold text-2xl sm:text-3xl leading-tight mt-0.5">{payment.title}</h1>
+                {payment.description && <p className="text-sm opacity-85 mt-2 whitespace-pre-line">{payment.description}</p>}
               </div>
             </div>
+          </div>
+        </motion.section>
+
+        {/* PAYMENT CARD */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-3xl bg-white border border-border/70 shadow-[0_20px_60px_-30px_rgba(21,101,216,0.35)]"
+        >
+          <div className="relative p-6 sm:p-8">
+            <SectionHeader icon={<Wallet className="w-5 h-5 text-brand" />} title="Payment overview" subtitle="Track total, paid & remaining" />
 
             {paymentLocked && (
               <motion.div
@@ -198,19 +204,17 @@ function PayPage() {
               </motion.div>
             )}
 
-            {/* Progress */}
-            <div className="mt-7">
-              <div className="flex items-end justify-between mb-2">
-                <div>
-                  <div className="text-[11px] uppercase tracking-wider font-semibold text-slate-soft">Total project value</div>
-                  <div className="font-display text-2xl sm:text-3xl font-bold text-navy">{formatINR(total)}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[11px] uppercase tracking-wider font-semibold text-slate-soft">Paid so far</div>
-                  <div className="font-display text-lg font-bold text-emerald-600">{formatINR(paidAmount)}</div>
-                </div>
-              </div>
-              <div className="relative h-3 rounded-full bg-muted overflow-hidden">
+            {/* Stat grid */}
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <StatTile label="Total" value={formatINR(total)} tone="navy" />
+              <StatTile label="Paid" value={formatINR(paidAmount)} tone="emerald" />
+              <StatTile label="Remaining" value={formatINR(remaining)} tone="orange" />
+              <StatTile label="Progress" value={`${progressPct}%`} tone="brand" />
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-5">
+              <div className="relative h-2.5 rounded-full bg-muted overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPct}%` }}
@@ -220,16 +224,15 @@ function PayPage() {
                   <div className="absolute inset-0 bg-white/20 animate-pulse" />
                 </motion.div>
               </div>
-              <div className="flex justify-between mt-1.5 text-xs text-slate-soft">
-                <span>{progressPct}% complete</span>
-                <span>Remaining <b className="text-navy">{formatINR(remaining)}</b></span>
-              </div>
             </div>
 
             {/* Installments */}
             {installments.length > 0 && (
               <div className="mt-8">
-                <div className="text-xs uppercase tracking-wider font-semibold text-slate-soft mb-3">Payment schedule</div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-1 w-8 rounded-full bg-brand" />
+                  <div className="text-xs uppercase tracking-wider font-semibold text-slate-soft">Payment schedule</div>
+                </div>
                 <ul className="space-y-2.5">
                   {installments.map((inst, i) => {
                     const paid = !!inst.paid;
@@ -239,8 +242,9 @@ function PayPage() {
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.05 }}
-                        className={`flex items-center gap-3 rounded-2xl border p-3.5 sm:p-4 ${paid ? "bg-emerald-50/60 border-emerald-200" : "bg-white border-border"}`}
+                        className={`relative flex items-center gap-3 rounded-2xl border p-3.5 sm:p-4 overflow-hidden ${paid ? "bg-emerald-50/60 border-emerald-200" : "bg-white border-border hover:border-brand/40 transition-colors"}`}
                       >
+                        <span className={`absolute left-0 top-0 bottom-0 w-1 ${paid ? "bg-emerald-500" : "bg-brand/60"}`} />
                         <div className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${paid ? "bg-emerald-500 text-white" : "bg-brand/10 text-brand font-bold"}`}>
                           {paid ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
                         </div>
@@ -317,14 +321,10 @@ function PayPage() {
           </div>
         </motion.section>
 
-        <p className="text-center text-xs text-slate-soft mt-6">
-          Questions? <a href="https://wa.me/917013906671" className="text-brand font-semibold">WhatsApp us</a>
-        </p>
-
         <LaunchCard launchAt={launchAt} />
 
         {payment.dashboard_enabled && (
-          <div id="dashboard-section" style={{ scrollMarginTop: 88 }}>
+          <div id="dashboard-section" style={{ scrollMarginTop: 120 }}>
             <ProjectDashboard
               title={payment.dashboard_title || `${payment.title} Dashboard`}
               pages={Array.isArray(payment.dashboard_pages) ? (payment.dashboard_pages as DashPage[]) : []}
@@ -333,9 +333,13 @@ function PayPage() {
           </div>
         )}
 
-        <div id="sessions-section" style={{ scrollMarginTop: 88 }}>
+        <div id="sessions-section" style={{ scrollMarginTop: 120 }}>
           <SessionsSection upcoming={upcomingSessions} completed={completedSessions} />
         </div>
+
+        <p className="text-center text-xs text-slate-soft pt-2">
+          Need help? <a href="https://wa.me/917013906671" className="text-brand font-semibold">WhatsApp us</a>
+        </p>
       </main>
 
       <AnimatePresence>
@@ -368,6 +372,41 @@ function PayPage() {
   );
 }
 
+function TabButton({ onClick, icon, label }: { onClick: () => void; icon: React.ReactNode; label: string }) {
+  return (
+    <button onClick={onClick} className="rounded-xl py-2 text-xs sm:text-sm font-semibold text-navy hover:bg-white transition-colors inline-flex items-center justify-center gap-1.5">
+      <span className="text-brand">{icon}</span> {label}
+    </button>
+  );
+}
+
+function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-10 w-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <h2 className="font-display font-bold text-navy text-lg sm:text-xl leading-tight truncate">{title}</h2>
+        {subtitle && <div className="text-xs text-slate-soft">{subtitle}</div>}
+      </div>
+    </div>
+  );
+}
+
+function StatTile({ label, value, tone }: { label: string; value: string; tone: "navy" | "emerald" | "orange" | "brand" }) {
+  const tones: Record<string, string> = {
+    navy: "bg-navy/5 text-navy border-navy/10",
+    emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    orange: "bg-orange-50 text-orange-700 border-orange-200",
+    brand: "bg-brand/10 text-brand border-brand/20",
+  };
+  return (
+    <div className={`rounded-2xl border p-3 ${tones[tone]}`}>
+      <div className="text-[10px] uppercase tracking-wider font-semibold opacity-70">{label}</div>
+      <div className="font-display text-base sm:text-lg font-bold mt-0.5 truncate">{value}</div>
+    </div>
+  );
+}
+
 function ImportantNotesModal({ notes, projectTitle, onAgree }: { notes: DashNote[]; projectTitle: string; onAgree: () => void }) {
   return _ImportantNotesModal({ notes, projectTitle, onAgree });
 }
@@ -383,33 +422,32 @@ function LaunchCard({ launchAt }: { launchAt: string | null }) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-      className="mt-10 relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy via-[#183b56] to-brand text-white p-6 sm:p-8 shadow-glow"
+      className="relative overflow-hidden rounded-3xl bg-white border border-border/70 p-6 sm:p-7 shadow-[0_20px_60px_-30px_rgba(234,88,12,0.35)]"
     >
-      <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-orange/40 blur-3xl" />
-      <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-brand/60 blur-3xl" />
-      <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
+      <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-orange/15 blur-3xl" />
+      <div className="relative flex items-center gap-4 sm:gap-5">
         <motion.div
           animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 2.6, ease: "easeInOut" }}
-          className="h-16 w-16 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center flex-shrink-0 border border-white/20"
+          className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange to-brand text-white flex items-center justify-center flex-shrink-0 shadow-soft"
         >
-          <Rocket className="w-8 h-8" />
+          <Rocket className="w-7 h-7" />
         </motion.div>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] uppercase tracking-[0.2em] opacity-80">Website Launch Date</div>
+          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-soft font-semibold">Website Launch Date</div>
           {!valid ? (
             <>
-              <div className="font-display text-2xl sm:text-3xl font-bold">Coming Soon</div>
-              <div className="text-sm opacity-80 mt-1">The launch date will be shared soon. Stay tuned.</div>
+              <div className="font-display text-xl sm:text-2xl font-bold text-navy">Coming Soon</div>
+              <div className="text-xs sm:text-sm text-slate-soft mt-0.5">Launch date will be shared soon.</div>
             </>
           ) : launched ? (
             <>
-              <div className="font-display text-2xl sm:text-3xl font-bold">🎉 Launched!</div>
-              <div className="text-sm opacity-90 mt-1">{date!.toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" })}</div>
+              <div className="font-display text-xl sm:text-2xl font-bold text-emerald-600">🎉 Launched!</div>
+              <div className="text-xs sm:text-sm text-slate-soft mt-0.5">{date!.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</div>
             </>
           ) : (
             <>
-              <div className="font-display text-2xl sm:text-3xl font-bold">{date!.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
-              <div className="text-sm opacity-90 mt-1 inline-flex items-center gap-1.5"><Clock className="w-4 h-4" /> {date!.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} · in {days}d {hours}h</div>
+              <div className="font-display text-lg sm:text-2xl font-bold text-navy leading-tight">{date!.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "long", year: "numeric" })}</div>
+              <div className="text-xs sm:text-sm text-slate-soft mt-0.5 inline-flex items-center gap-1.5 flex-wrap"><Clock className="w-3.5 h-3.5" /> {date!.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}<span className="text-orange font-semibold">· in {days}d {hours}h</span></div>
             </>
           )}
         </div>
@@ -420,20 +458,20 @@ function LaunchCard({ launchAt }: { launchAt: string | null }) {
 
 function SessionsSection({ upcoming, completed }: { upcoming: MeetSession[]; completed: MeetSession[] }) {
   return (
-    <section className="mt-10">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="h-9 w-9 rounded-xl bg-brand/10 flex items-center justify-center"><Calendar className="w-5 h-5 text-brand" /></div>
-        <div>
-          <h2 className="font-display font-bold text-xl text-navy leading-tight">Google Meet Sessions</h2>
-          <div className="text-xs text-slate-soft">Scheduled reviews & call summaries</div>
+    <section className="rounded-3xl bg-white border border-border/70 p-6 sm:p-7 shadow-[0_20px_60px_-30px_rgba(21,101,216,0.25)]">
+      <SectionHeader icon={<Calendar className="w-5 h-5 text-brand" />} title="Google Meet Sessions" subtitle="Scheduled reviews & call summaries" />
+      <div className="mt-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-brand animate-pulse" />
+          <div className="text-[11px] uppercase tracking-widest text-slate-soft font-semibold">Upcoming · {upcoming.length}</div>
         </div>
-      </div>
-      <div className="space-y-3">
-        <div className="text-[11px] uppercase tracking-widest text-slate-soft font-semibold">Upcoming ({upcoming.length})</div>
         {upcoming.length === 0 && <EmptySession label="No upcoming sessions yet" />}
         {upcoming.map((s) => <SessionCard key={s.id} s={s} state="upcoming" />)}
 
-        <div className="text-[11px] uppercase tracking-widest text-slate-soft font-semibold pt-4">Completed ({completed.length})</div>
+        <div className="flex items-center gap-2 pt-3">
+          <span className="h-2 w-2 rounded-full bg-slate-soft/50" />
+          <div className="text-[11px] uppercase tracking-widest text-slate-soft font-semibold">Completed · {completed.length}</div>
+        </div>
         {completed.length === 0 && <EmptySession label="No completed sessions yet" />}
         {completed.map((s) => <SessionCard key={s.id} s={s} state="completed" />)}
       </div>
