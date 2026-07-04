@@ -476,13 +476,16 @@ function RowCard({ title, subtitle, thumbnail, onEdit, onDelete }: { title: stri
 
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-start sm:items-center justify-center overflow-y-auto p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-glow my-8" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h3 className="font-display font-bold text-navy text-lg">{title}</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-muted flex items-center justify-center"><X className="w-4 h-4" /></button>
+    <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-stretch sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-none sm:rounded-2xl w-full max-w-2xl shadow-glow flex flex-col max-h-full sm:max-h-[92vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-border shrink-0 bg-white rounded-t-2xl">
+          <h3 className="font-display font-bold text-navy text-lg truncate">{title}</h3>
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-muted flex items-center justify-center shrink-0"><X className="w-4 h-4" /></button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1">{children}</div>
       </div>
     </div>
   );
