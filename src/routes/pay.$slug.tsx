@@ -853,7 +853,7 @@ function ProjectDashboard({ title, pages, notes }: { title: string; pages: DashP
 
       <div className="relative px-6 sm:px-8 py-3 border-t border-border/60 bg-muted/30 flex items-center gap-2 text-[11px] text-slate-soft">
         <Info className="w-3.5 h-3.5" />
-        <span>A <Lock className="inline w-3 h-3 -mt-0.5" /> lock icon means the page is approved and finalized — no further changes will be made.</span>
+        <span>A <Lock className="inline w-3 h-3 -mt-0.5 text-amber-500" /> lock icon on a yellow row means the page is approved and finalized — no further changes will be made.</span>
       </div>
     </motion.section>
   );
