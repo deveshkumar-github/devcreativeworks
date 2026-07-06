@@ -880,11 +880,11 @@ function PageRow({ page, depth, index }: { page: DashPage; depth: number; index:
         <div className={`h-5 w-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors ${page.checked ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-soft/40 bg-white"}`}>
           {page.checked && <Check className="w-3 h-3" strokeWidth={3} />}
         </div>
-        <span className={`text-sm flex-1 min-w-0 truncate ${page.checked ? "text-navy font-medium" : "text-slate-soft"} ${page.locked ? "line-through decoration-emerald-500/50" : ""}`}>
+        <span className={`text-sm flex-1 min-w-0 truncate ${page.locked ? "text-amber-900 font-medium" : page.checked ? "text-navy font-medium" : "text-slate-soft"} ${page.locked ? "line-through decoration-amber-400" : ""}`}>
           {page.label}
         </span>
         {page.locked && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 rounded-full px-2 py-0.5">
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-200 rounded-full px-2 py-0.5 border border-amber-300">
             <Lock className="w-3 h-3" /> Locked
           </span>
         )}
