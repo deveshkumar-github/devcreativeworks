@@ -869,7 +869,7 @@ function PageRow({ page, depth, index }: { page: DashPage; depth: number; index:
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ delay: index * 0.03 }}
-        className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 ${page.locked ? "bg-emerald-50/50 border-emerald-200" : page.checked ? "bg-brand/5 border-brand/20" : "bg-white border-border"}`}
+        className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 ${page.locked ? "bg-amber-50 border-amber-300 shadow-[0_0_0_1px_rgba(245,158,11,0.15)]" : page.checked ? "bg-brand/5 border-brand/20" : "bg-white border-border"}`}
         style={{ marginLeft: depth * 20 }}
       >
         {hasKids ? (
