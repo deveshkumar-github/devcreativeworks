@@ -12,10 +12,12 @@ import {
   adminListAllClientLogos,
   adminListAllPayments,
   adminListSessions,
+  adminListReferrals,
+  adminListReferrers,
 } from "@/lib/admin.functions";
 import { useAdminAuth, clearAdminPassword } from "@/lib/use-admin";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2, Wallet, Copy, Check, ExternalLink, Lock, Unlock, ChevronRight, ChevronDown, LayoutDashboard, GripVertical, Calendar, Video, Rocket } from "lucide-react";
+import { LogOut, Plus, Trash2, Pencil, MessageCircle, X, Briefcase, Layers, Star, Inbox, Building2, Wallet, Copy, Check, ExternalLink, Lock, Unlock, ChevronRight, ChevronDown, LayoutDashboard, GripVertical, Calendar, Video, Rocket, Gift, Users } from "lucide-react";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
@@ -23,7 +25,7 @@ export const Route = createFileRoute("/admin/")({
   component: AdminPage,
 });
 
-type Tab = "projects" | "services" | "testimonials" | "logos" | "contacts" | "payments";
+type Tab = "projects" | "services" | "testimonials" | "logos" | "contacts" | "payments" | "referrals";
 
 function AdminPage() {
   const { authenticated, ready, password } = useAdminAuth();
@@ -62,6 +64,7 @@ function AdminPage() {
           <TabBtn active={tab === "testimonials"} onClick={() => setTab("testimonials")} icon={Star}>Testimonials</TabBtn>
           <TabBtn active={tab === "logos"} onClick={() => setTab("logos")} icon={Building2}>Client Logos</TabBtn>
           <TabBtn active={tab === "payments"} onClick={() => setTab("payments")} icon={Wallet}>Payments</TabBtn>
+          <TabBtn active={tab === "referrals"} onClick={() => setTab("referrals")} icon={Gift}>Referrals</TabBtn>
           <TabBtn active={tab === "contacts"} onClick={() => setTab("contacts")} icon={Inbox}>Leads</TabBtn>
         </div>
         {tab === "projects" && <ProjectsTab password={password} />}
@@ -69,6 +72,7 @@ function AdminPage() {
         {tab === "testimonials" && <TestimonialsTab password={password} />}
         {tab === "logos" && <ClientLogosTab password={password} />}
         {tab === "payments" && <PaymentsTab password={password} />}
+        {tab === "referrals" && <ReferralsTab password={password} />}
         {tab === "contacts" && <ContactsTab password={password} />}
       </div>
     </div>
@@ -1052,5 +1056,147 @@ function SessionForm({ initial, onSubmit, saving }: { initial: MeetSessionRow; o
 
       <SaveBtn saving={saving} />
     </form>
+  );
+}
+/* ------------ REFERRALS ------------ */
+const REFERRAL_STATUSES = ["submitted","contacted","proposal_sent","in_discussion","project_confirmed","reward_paid","closed"] as const;
+const REFERRAL_STATUS_LABEL: Record<string, string> = {
+  submitted: "Submitted", contacted: "Contacted", proposal_sent: "Proposal Sent",
+  in_discussion: "In Discussion", project_confirmed: "Project Confirmed",
+  reward_paid: "Reward Paid", closed: "Closed",
+};
+
+function ReferralsTab({ password }: { password: string }) {
+  const qc = useQueryClient();
+  const listReferrals = useServerFn(adminListReferrals);
+  const listReferrers = useServerFn(adminListReferrers);
+  const upsert = useServerFn(adminUpsert);
+  const del = useServerFn(adminDelete);
+  const { data: referrals } = useQuery({ queryKey: ["admin-referrals"], queryFn: () => listReferrals({ data: { password } }) });
+  const { data: referrers } = useQuery({ queryKey: ["admin-referrers"], queryFn: () => listReferrers({ data: { password } }) });
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
+
+  const save = useMutation({
+    mutationFn: (row: Record<string, unknown>) => upsert({ data: { password, table: "referrals", row } }),
+    onSuccess: () => { toast.success("Saved"); setEditing(null); qc.invalidateQueries({ queryKey: ["admin-referrals"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => del({ data: { password, table: "referrals", id } }),
+    onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["admin-referrals"] }); },
+  });
+
+  const rows = referrals ?? [];
+  const totalRewards = rows.reduce((s, r) => s + Number((r as { reward_amount?: number }).reward_amount || 0), 0);
+  const codeOf = (r: Record<string, unknown>) =>
+    (r.referrer_code as string) ||
+    ((referrers ?? []).find((x) => x.id === r.referrer_id)?.code as string) || "—";
+
+  return (
+    <div>
+      <SectionHeader title="Referrals" subtitle="Referral submissions, statuses and rewards" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <StatTile label="Total referrals" value={String(rows.length)} />
+        <StatTile label="Partners" value={String((referrers ?? []).length)} />
+        <StatTile label="Projects confirmed" value={String(rows.filter((r) => ["project_confirmed","reward_paid"].includes(String(r.status))).length)} />
+        <StatTile label="Rewards assigned" value={`₹${totalRewards.toLocaleString("en-IN")}`} />
+      </div>
+
+      <div className="grid gap-3">
+        {rows.map((r) => {
+          const row = r as Record<string, unknown>;
+          return (
+            <div key={row.id as string} className="rounded-2xl border border-border bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-navy">{row.full_name as string} <span className="text-xs text-slate-soft">· {(row.business_name as string) || "No business"}</span></p>
+                  <p className="text-xs text-slate-soft mt-0.5">
+                    Code: <span className="font-semibold text-brand">{codeOf(row)}</span> · {new Date(row.created_at as string).toLocaleDateString("en-IN")}
+                  </p>
+                  <p className="text-xs text-slate-soft mt-1">{(row.email as string) || "—"} · {(row.whatsapp as string) || "—"} · {(row.industry as string) || "—"} · {(row.budget as string) || "—"}</p>
+                  {Array.isArray(row.services) && (row.services as string[]).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {(row.services as string[]).map((s) => <span key={s} className="rounded-full bg-brand/10 text-brand px-2 py-0.5 text-[11px] font-semibold">{s}</span>)}
+                    </div>
+                  )}
+                  {row.requirements ? <p className="text-xs text-slate-soft mt-2 max-w-2xl">{row.requirements as string}</p> : null}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold text-navy">{REFERRAL_STATUS_LABEL[String(row.status)] ?? String(row.status)}</span>
+                  {row.whatsapp ? (
+                    <a href={`https://wa.me/${String(row.whatsapp).replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="p-2 rounded-lg border border-border text-emerald-600"><MessageCircle className="w-4 h-4" /></a>
+                  ) : null}
+                  <button onClick={() => setEditing(row)} className="p-2 rounded-lg border border-border text-slate-soft hover:text-brand"><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => remove.mutate(row.id as string)} className="p-2 rounded-lg border border-border text-slate-soft hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {rows.length === 0 && <p className="text-sm text-slate-soft">No referrals yet.</p>}
+      </div>
+
+      <div className="mt-10">
+        <SectionHeader title="Referral partners" subtitle="People who signed up to refer businesses" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {(referrers ?? []).map((rr) => {
+            const r = rr as Record<string, unknown>;
+            const count = rows.filter((x) => x.referrer_id === r.id).length;
+            return (
+              <div key={r.id as string} className="rounded-2xl border border-border bg-white p-4">
+                <div className="flex items-center gap-2"><Users className="w-4 h-4 text-brand" /><p className="font-semibold text-navy">{r.full_name as string}</p></div>
+                <p className="text-xs text-slate-soft mt-1">{(r.email as string) || "—"} · {(r.phone as string) || "—"}</p>
+                <p className="text-xs mt-2">Code <span className="font-bold text-orange">{r.code as string}</span> · {count} referral{count === 1 ? "" : "s"}</p>
+              </div>
+            );
+          })}
+          {(referrers ?? []).length === 0 && <p className="text-sm text-slate-soft">No partners yet.</p>}
+        </div>
+      </div>
+
+      {editing && (
+        <Modal title="Update referral" onClose={() => setEditing(null)}>
+          <div className="grid gap-4">
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-soft">Status</label>
+              <select
+                value={String(editing.status ?? "submitted")}
+                onChange={(e) => setEditing({ ...editing, status: e.target.value })}
+                className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm"
+              >
+                {REFERRAL_STATUSES.map((s) => <option key={s} value={s}>{REFERRAL_STATUS_LABEL[s]}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-soft">Project value (₹)</label>
+                <input type="number" value={Number(editing.project_value ?? 0)} onChange={(e) => setEditing({ ...editing, project_value: Number(e.target.value) })}
+                  className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-soft">Reward (₹)</label>
+                <input type="number" value={Number(editing.reward_amount ?? 0)} onChange={(e) => setEditing({ ...editing, reward_amount: Number(e.target.value) })}
+                  className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-soft">Admin notes</label>
+              <textarea rows={3} value={String(editing.admin_notes ?? "")} onChange={(e) => setEditing({ ...editing, admin_notes: e.target.value })}
+                className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm" />
+            </div>
+            <button onClick={() => save.mutate(editing)} className="rounded-full bg-gradient-brand px-6 py-3 text-sm font-bold text-white">Save changes</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function StatTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-white p-4">
+      <p className="font-display text-2xl font-extrabold text-navy">{value}</p>
+      <p className="text-xs text-slate-soft">{label}</p>
+    </div>
   );
 }

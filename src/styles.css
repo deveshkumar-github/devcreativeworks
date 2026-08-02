@@ -283,3 +283,16 @@
   animation: marquee-x 40s linear infinite;
   will-change: transform;
 }
+
+/* --- Referral animated gradient border --- */
+@keyframes border-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@utility animate-border-spin { animation: border-spin 3s linear infinite; }
+
+@keyframes shine-sweep {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(220%); }
+}
+@utility animate-shine-sweep { animation: shine-sweep 2.8s ease-in-out infinite; }
