@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import logoAsset from "@/assets/dev-logo.png.asset.json";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { ReferralButton } from "@/components/refer/ReferralButton";
 
 const nav = [
   { label: "Services", href: "#services" },
@@ -31,6 +32,7 @@ export function Header() {
           ))}
         </nav>
         <div className="hidden md:flex items-center gap-3">
+          <ReferralButton />
           <a
             href="https://wa.me/919999999999"
             target="_blank"
@@ -52,6 +54,7 @@ export function Header() {
                 {n.label}
               </a>
             ))}
+            <ReferralButton className="mt-2 w-full" onClick={() => setOpen(false)} />
             <a
               href="https://wa.me/919999999999"
               className="mt-2 inline-flex items-center justify-center rounded-full bg-gradient-brand text-white px-5 py-3 text-sm font-semibold"
