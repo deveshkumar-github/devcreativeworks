@@ -197,6 +197,110 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          admin_notes: string | null
+          budget: string | null
+          business_name: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          industry: string | null
+          project_value: number
+          referrer_code: string | null
+          referrer_id: string | null
+          requirements: string | null
+          reward_amount: number
+          services: string[]
+          status: string
+          updated_at: string
+          website: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          budget?: string | null
+          business_name?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          industry?: string | null
+          project_value?: number
+          referrer_code?: string | null
+          referrer_id?: string | null
+          requirements?: string | null
+          reward_amount?: number
+          services?: string[]
+          status?: string
+          updated_at?: string
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          budget?: string | null
+          business_name?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          industry?: string | null
+          project_value?: number
+          referrer_code?: string | null
+          referrer_id?: string | null
+          requirements?: string | null
+          reward_amount?: number
+          services?: string[]
+          status?: string
+          updated_at?: string
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "referrers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrers: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string
