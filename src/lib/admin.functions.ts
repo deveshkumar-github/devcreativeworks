@@ -15,7 +15,7 @@ export const adminLogin = createServerFn({ method: "POST" })
     return { ok: true, token: "dcw-admin-" + Date.now() };
   });
 
-type Table = "projects" | "services" | "testimonials" | "contacts" | "client_logos" | "payments" | "sessions";
+type Table = "projects" | "services" | "testimonials" | "contacts" | "client_logos" | "payments" | "sessions" | "referrals" | "referrers";
 
 export const adminUpsert = createServerFn({ method: "POST" })
   .inputValidator((d: { password: string; table: Table; row: Record<string, unknown> }) => d)
@@ -148,4 +148,29 @@ export const adminUploadFile = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const { data: pub } = supabaseAdmin.storage.from("media").getPublicUrl(path);
     return { url: pub.publicUrl, path };
+  });
+export const adminListReferrers = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("referrers")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows;
+  });
+
+export const adminListReferrals = createServerFn({ method: "POST" })
+  .inputValidator((d: { password: string }) => d)
+  .handler(async ({ data }) => {
+    assertAdmin(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("referrals")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows;
   });

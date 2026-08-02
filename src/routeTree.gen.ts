@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReferIndexRouteImport } from './routes/refer.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as ReferDashboardRouteImport } from './routes/refer.dashboard'
 import { Route as ReferCodeRouteImport } from './routes/refer.$code'
 import { Route as ProjectsSlugRouteImport } from './routes/projects.$slug'
 import { Route as PaySlugRouteImport } from './routes/pay.$slug'
@@ -30,6 +31,11 @@ const ReferIndexRoute = ReferIndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReferDashboardRoute = ReferDashboardRouteImport.update({
+  id: '/refer/dashboard',
+  path: '/refer/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReferCodeRoute = ReferCodeRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/refer/$code': typeof ReferCodeRoute
+  '/refer/dashboard': typeof ReferDashboardRoute
   '/admin/': typeof AdminIndexRoute
   '/refer/': typeof ReferIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/refer/$code': typeof ReferCodeRoute
+  '/refer/dashboard': typeof ReferDashboardRoute
   '/admin': typeof AdminIndexRoute
   '/refer': typeof ReferIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/refer/$code': typeof ReferCodeRoute
+  '/refer/dashboard': typeof ReferDashboardRoute
   '/admin/': typeof AdminIndexRoute
   '/refer/': typeof ReferIndexRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/pay/$slug'
     | '/projects/$slug'
     | '/refer/$code'
+    | '/refer/dashboard'
     | '/admin/'
     | '/refer/'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/pay/$slug'
     | '/projects/$slug'
     | '/refer/$code'
+    | '/refer/dashboard'
     | '/admin'
     | '/refer'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/pay/$slug'
     | '/projects/$slug'
     | '/refer/$code'
+    | '/refer/dashboard'
     | '/admin/'
     | '/refer/'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   PaySlugRoute: typeof PaySlugRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
   ReferCodeRoute: typeof ReferCodeRoute
+  ReferDashboardRoute: typeof ReferDashboardRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ReferIndexRoute: typeof ReferIndexRoute
 }
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refer/dashboard': {
+      id: '/refer/dashboard'
+      path: '/refer/dashboard'
+      fullPath: '/refer/dashboard'
+      preLoaderRoute: typeof ReferDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/refer/$code': {
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   PaySlugRoute: PaySlugRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
   ReferCodeRoute: ReferCodeRoute,
+  ReferDashboardRoute: ReferDashboardRoute,
   AdminIndexRoute: AdminIndexRoute,
   ReferIndexRoute: ReferIndexRoute,
 }

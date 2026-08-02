@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
-import { Field, Label, inputCls } from "@/components/refer/ReferPage";
+import { Field } from "@/components/refer/ReferPage";
 import {
   Users, CheckCircle2, Trophy, Clock, Wallet, Copy, Check, LogOut, Share2, ArrowRight, Gift,
 } from "lucide-react";
@@ -313,7 +313,6 @@ function DashboardView({ referrer, referrals }: { referrer: Referrer; referrals:
       <p className="mt-4 text-center text-xs text-slate-soft">
         Rewards are credited after the referred client confirms the project and completes the initial payment.
       </p>
-      <div className="hidden"><Label>x</Label><span className={inputCls} /></div>
     </div>
   );
 }
