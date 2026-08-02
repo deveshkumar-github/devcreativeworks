@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReferIndexRouteImport } from './routes/refer.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as ReferCodeRouteImport } from './routes/refer.$code'
 import { Route as ProjectsSlugRouteImport } from './routes/projects.$slug'
 import { Route as PaySlugRouteImport } from './routes/pay.$slug'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
@@ -20,9 +22,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReferIndexRoute = ReferIndexRouteImport.update({
+  id: '/refer/',
+  path: '/refer/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReferCodeRoute = ReferCodeRouteImport.update({
+  id: '/refer/$code',
+  path: '/refer/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
@@ -46,14 +58,18 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/refer/$code': typeof ReferCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/refer/': typeof ReferIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/refer/$code': typeof ReferCodeRoute
   '/admin': typeof AdminIndexRoute
+  '/refer': typeof ReferIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,20 +77,38 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/pay/$slug': typeof PaySlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/refer/$code': typeof ReferCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/refer/': typeof ReferIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin/login' | '/pay/$slug' | '/projects/$slug' | '/admin/'
+  fullPaths:
+    | '/'
+    | '/admin/login'
+    | '/pay/$slug'
+    | '/projects/$slug'
+    | '/refer/$code'
+    | '/admin/'
+    | '/refer/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin/login' | '/pay/$slug' | '/projects/$slug' | '/admin'
+  to:
+    | '/'
+    | '/admin/login'
+    | '/pay/$slug'
+    | '/projects/$slug'
+    | '/refer/$code'
+    | '/admin'
+    | '/refer'
   id:
     | '__root__'
     | '/'
     | '/admin/login'
     | '/pay/$slug'
     | '/projects/$slug'
+    | '/refer/$code'
     | '/admin/'
+    | '/refer/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -82,7 +116,9 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   PaySlugRoute: typeof PaySlugRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
+  ReferCodeRoute: typeof ReferCodeRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  ReferIndexRoute: typeof ReferIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -94,11 +130,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/refer/': {
+      id: '/refer/'
+      path: '/refer'
+      fullPath: '/refer/'
+      preLoaderRoute: typeof ReferIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refer/$code': {
+      id: '/refer/$code'
+      path: '/refer/$code'
+      fullPath: '/refer/$code'
+      preLoaderRoute: typeof ReferCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects/$slug': {
@@ -130,7 +180,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   PaySlugRoute: PaySlugRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
+  ReferCodeRoute: ReferCodeRoute,
   AdminIndexRoute: AdminIndexRoute,
+  ReferIndexRoute: ReferIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
