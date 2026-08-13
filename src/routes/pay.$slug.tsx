@@ -117,230 +117,256 @@ function PayPage() {
     setShowNotes(false);
   };
 
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const now = Date.now();
   const upcomingSessions = sessions.filter((s) => new Date(s.scheduled_at).getTime() + (s.duration_minutes || 30) * 60000 > now);
   const completedSessions = sessions.filter((s) => new Date(s.scheduled_at).getTime() + (s.duration_minutes || 30) * 60000 <= now).reverse();
 
+  const [tab, setTab] = useState<"overview" | "dashboard" | "sessions">("overview");
+  const tabs = [
+    { id: "overview" as const, label: "Payment", icon: <Wallet className="w-5 h-5" /> },
+    ...(payment.dashboard_enabled ? [{ id: "dashboard" as const, label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> }] : []),
+    { id: "sessions" as const, label: "Sessions", icon: <Video className="w-5 h-5" /> },
+  ];
+
+  const brandBlock = (
+    <div className="flex items-center gap-3 min-w-0">
+      {payment.logo_url ? (
+        <img src={payment.logo_url} alt="" className="h-11 w-11 rounded-2xl object-contain bg-white p-1.5 shrink-0" />
+      ) : (
+        <div className="h-11 w-11 rounded-2xl bg-white/10 flex items-center justify-center shrink-0"><Sparkles className="w-5 h-5 text-orange" /></div>
+      )}
+      <div className="min-w-0">
+        <div className="font-display font-bold text-white text-sm leading-tight truncate">{payment.title}</div>
+        <div className="text-[11px] text-white/60 leading-tight flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Client portal</div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f6f8ff] via-white to-[#fff7ed]">
-      {/* Sticky top bar with brand + help */}
-      <div className="sticky top-0 z-30 backdrop-blur-md bg-white/80 border-b border-border/60">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <img src={logoAsset.url} className="h-9 w-9 object-contain shrink-0" alt="" />
-            <div className="min-w-0">
-              <div className="font-display font-bold text-navy text-sm leading-tight truncate">Dev Creative Works</div>
-              <div className="text-[11px] text-slate-soft leading-tight flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Secure client portal</div>
-            </div>
+    <div className="min-h-screen bg-[#f4f7fc] lg:flex">
+      {/* ===== DESKTOP SIDEBAR ===== */}
+      <aside className="hidden lg:flex flex-col w-[280px] shrink-0 sticky top-0 h-screen bg-navy text-white p-5">
+        <div className="flex items-center gap-2 pb-5 border-b border-white/10">
+          <img src={logoAsset.url} className="h-9 w-9 object-contain" alt="" />
+          <span className="font-display font-bold text-sm">Dev Creative Works</span>
+        </div>
+
+        <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 p-3">{brandBlock}</div>
+
+        <nav className="mt-5 space-y-1.5">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`relative w-full flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-colors ${tab === t.id ? "bg-white text-navy" : "text-white/70 hover:bg-white/10"}`}
+            >
+              {tab === t.id && <motion.span layoutId="navpill" className="absolute inset-0 rounded-xl bg-white -z-10" />}
+              <span className={tab === t.id ? "text-brand" : ""}>{t.icon}</span>
+              {t.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="mt-6 rounded-2xl bg-white/5 border border-white/10 p-4">
+          <div className="text-[10px] uppercase tracking-wider text-white/50 font-bold">Payment progress</div>
+          <div className="font-display text-3xl font-extrabold mt-1">{progressPct}%</div>
+          <div className="mt-2 h-1.5 rounded-full bg-white/15 overflow-hidden">
+            <motion.div initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.9 }} className="h-full rounded-full bg-gradient-to-r from-brand to-orange" />
           </div>
-          <a href="https://wa.me/917013906671" className="shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-full px-3 py-1.5 inline-flex items-center gap-1.5">
-            <MessageCircle className="w-3.5 h-3.5" /> Help
+          <div className="mt-2 text-[11px] text-white/60">{formatINR(paidAmount)} of {formatINR(total)}</div>
+        </div>
+
+        <div className="mt-auto pt-5 space-y-2">
+          <a href="https://wa.me/917013906671" className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 py-2.5 text-xs font-semibold">
+            <MessageCircle className="w-4 h-4" /> WhatsApp support
+          </a>
+          <button
+            onClick={() => { navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/15 py-2.5 text-xs font-semibold text-white/70 hover:bg-white/10"
+          >
+            {copied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy link</>}
+          </button>
+        </div>
+      </aside>
+
+      {/* ===== MOBILE TOP BAR ===== */}
+      <div className="lg:hidden sticky top-0 z-30 bg-navy text-white px-4 pt-3 pb-4 rounded-b-3xl">
+        <div className="flex items-center justify-between gap-3">
+          {brandBlock}
+          <a href="https://wa.me/917013906671" className="shrink-0 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center">
+            <MessageCircle className="w-4 h-4" />
           </a>
         </div>
-        {/* Section tabs */}
-        {payment.dashboard_enabled && (
-          <nav className="mx-auto max-w-3xl px-4 sm:px-6 pb-3">
-            <div className="grid grid-cols-3 gap-1 rounded-2xl bg-muted/60 border border-border p-1">
-              <TabButton onClick={() => scrollTo("pay-section")} icon={<Wallet className="w-4 h-4" />} label="Payment" />
-              <TabButton onClick={() => scrollTo("dashboard-section")} icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
-              <TabButton onClick={() => scrollTo("sessions-section")} icon={<Video className="w-4 h-4" />} label="Sessions" />
-            </div>
-          </nav>
-        )}
+        <div className="mt-4 flex items-end justify-between">
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-white/50 font-bold">Paid so far</div>
+            <div className="font-display text-2xl font-extrabold leading-tight">{formatINR(paidAmount)}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-wider text-white/50 font-bold">Progress</div>
+            <div className="font-display text-2xl font-extrabold leading-tight text-orange">{progressPct}%</div>
+          </div>
+        </div>
+        <div className="mt-2 h-1.5 rounded-full bg-white/15 overflow-hidden">
+          <motion.div initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.9 }} className="h-full rounded-full bg-gradient-to-r from-brand to-orange" />
+        </div>
       </div>
 
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 pt-6 pb-16 space-y-8">
-        {/* HERO — project identity */}
-        <motion.section
-          id="pay-section"
-          style={{ scrollMarginTop: 120 }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy via-[#1e4a75] to-brand text-white shadow-[0_20px_60px_-30px_rgba(21,101,216,0.5)]"
-        >
-          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-orange/30 blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-brand/40 blur-3xl" />
-          <div className="relative p-6 sm:p-8">
-            <div className="flex items-start gap-4">
-              {payment.logo_url ? (
-                <img src={payment.logo_url} alt="" className="h-16 w-16 rounded-2xl object-contain bg-white p-2 border border-white/20 shrink-0" />
-              ) : (
-                <div className="h-16 w-16 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center border border-white/20 shrink-0"><Sparkles className="w-7 h-7" /></div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="text-[11px] uppercase tracking-[0.2em] opacity-70">Client project portal</div>
-                <h1 className="font-display font-bold text-2xl sm:text-3xl leading-tight mt-0.5">{payment.title}</h1>
-                {payment.description && <p className="text-sm opacity-85 mt-2 whitespace-pre-line">{payment.description}</p>}
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* PAYMENT CARD */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl bg-white border border-border/70 shadow-[0_20px_60px_-30px_rgba(21,101,216,0.35)]"
-        >
-          <div className="relative p-6 sm:p-8">
-            <SectionHeader icon={<Wallet className="w-5 h-5 text-brand" />} title="Payment overview" subtitle="Track total, paid & remaining" />
-
-            {paymentLocked && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className="mt-5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 flex gap-3"
-              >
-                <div className="h-10 w-10 rounded-full bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="font-display font-bold text-amber-800 text-sm sm:text-base">Payment is not open yet</div>
-                  <div className="text-xs sm:text-sm text-amber-800/90 mt-0.5">Your payment window has been temporarily locked. When it's opened, our team will contact you directly. You can still review the project dashboard below.</div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Stat grid */}
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <StatTile label="Total" value={formatINR(total)} tone="navy" />
-              <StatTile label="Paid" value={formatINR(paidAmount)} tone="emerald" />
-              <StatTile label="Remaining" value={formatINR(remaining)} tone="orange" />
-              <StatTile label="Progress" value={`${progressPct}%`} tone="brand" />
-            </div>
-
-            {/* Progress bar */}
-            <div className="mt-5">
-              <div className="relative h-2.5 rounded-full bg-muted overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPct}%` }}
-                  transition={{ duration: 0.9, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-brand via-brand to-orange rounded-full relative"
-                >
-                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Installments */}
-            {installments.length > 0 && (
-              <div className="mt-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-1 w-8 rounded-full bg-brand" />
-                  <div className="text-xs uppercase tracking-wider font-semibold text-slate-soft">Payment schedule</div>
-                </div>
-                <ul className="space-y-2.5">
-                  {installments.map((inst, i) => {
-                    const paid = !!inst.paid;
-                    return (
-                      <motion.li
-                        key={i}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className={`relative flex items-center gap-3 rounded-2xl border p-3.5 sm:p-4 overflow-hidden ${paid ? "bg-emerald-50/60 border-emerald-200" : "bg-white border-border hover:border-brand/40 transition-colors"}`}
-                      >
-                        <span className={`absolute left-0 top-0 bottom-0 w-1 ${paid ? "bg-emerald-500" : "bg-brand/60"}`} />
-                        <div className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${paid ? "bg-emerald-500 text-white" : "bg-brand/10 text-brand font-bold"}`}>
-                          {paid ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-navy text-sm sm:text-base truncate">{inst.label}</div>
-                          <div className="text-xs text-slate-soft flex flex-wrap gap-x-2">
-                            <span>{paid ? `Received${inst.paid_at ? ` · ${new Date(inst.paid_at).toLocaleDateString()}` : ""}` : "Pending"}</span>
-                            {inst.due_date && !paid && <span className="inline-flex items-center gap-1"><Calendar className="w-3 h-3" /> Due {new Date(inst.due_date).toLocaleDateString()}</span>}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-display font-bold text-navy">{formatINR(Number(inst.amount) || 0)}</div>
-                          {!paid && !paymentLocked && (
-                            <button
-                              onClick={() => { setSelected(inst); setCustomOpen(false); }}
-                              className="mt-1 text-[11px] font-semibold text-brand hover:underline"
-                            >Pay now →</button>
-                          )}
-                          {!paid && paymentLocked && (
-                            <div className="mt-1 text-[11px] font-semibold text-amber-700 inline-flex items-center gap-1"><Lock className="w-3 h-3" /> Locked</div>
-                          )}
-                        </div>
-                      </motion.li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {/* CTA */}
-            {remaining > 0 && !paymentLocked && (
-              <div className="mt-8 grid sm:grid-cols-2 gap-3">
-                <button
-                  onClick={() => { setSelected(null); setCustomOpen(true); setCustomAmount(String(remaining)); }}
-                  className="rounded-2xl bg-gradient-brand text-white py-4 font-semibold shadow-soft hover:shadow-glow transition-all"
-                >
-                  Pay remaining · {formatINR(remaining)}
-                </button>
-                <button
-                  onClick={() => { setSelected(null); setCustomOpen(true); setCustomAmount(""); }}
-                  className="rounded-2xl bg-white border border-border text-navy py-4 font-semibold hover:border-brand transition-all"
-                >
-                  Pay custom amount
-                </button>
-              </div>
-            )}
-            {remaining > 0 && paymentLocked && (
-              <div className="mt-8 rounded-2xl bg-navy/5 border border-navy/10 p-5 text-center">
-                <Lock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-                <div className="font-display font-bold text-navy text-base">Payment link is currently locked</div>
-                <div className="text-xs text-slate-soft mt-1">If it's opened, we will reach out to you on WhatsApp.</div>
-                <a href="https://wa.me/917013906671" className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-4 py-2">
-                  <MessageCircle className="w-3.5 h-3.5" /> Contact us
-                </a>
-              </div>
-            )}
-            {remaining === 0 && total > 0 && (
-              <div className="mt-8 rounded-2xl bg-emerald-50 border border-emerald-200 p-5 text-center">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-                <div className="font-display font-bold text-emerald-700 text-lg">All paid up. Thank you!</div>
-                <div className="text-sm text-emerald-700/80">Your project payment is complete.</div>
-              </div>
-            )}
-          </div>
-
-          <div className="relative px-6 sm:px-8 py-4 border-t border-border/60 bg-muted/30 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-soft">
-            <div className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> UPI · Google Pay · PhonePe · Paytm</div>
-            <button
-              onClick={() => { navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-              className="inline-flex items-center gap-1.5 hover:text-brand"
+      {/* ===== CONTENT ===== */}
+      <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-10 pt-5 lg:pt-8 pb-28 lg:pb-12">
+        <div className="mx-auto w-full max-w-4xl">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-6"
             >
-              {copied ? <><Check className="w-3.5 h-3.5" /> Copied link</> : <><Copy className="w-3.5 h-3.5" /> Copy link</>}
+              {tab === "overview" && (
+                <>
+                  <div className="hidden lg:flex items-center justify-between">
+                    <div>
+                      <h1 className="font-display font-bold text-navy text-2xl">Payment overview</h1>
+                      <p className="text-sm text-slate-soft">Track total, paid & remaining for this project</p>
+                    </div>
+                  </div>
+
+                  {payment.description && (
+                    <div className="rounded-2xl bg-white border border-border p-4 text-sm text-slate-soft whitespace-pre-line">{payment.description}</div>
+                  )}
+
+                  {paymentLocked && (
+                    <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 flex gap-3">
+                      <div className="h-10 w-10 rounded-full bg-amber-500 text-white flex items-center justify-center flex-shrink-0"><Lock className="w-5 h-5" /></div>
+                      <div className="min-w-0">
+                        <div className="font-display font-bold text-amber-800 text-sm sm:text-base">Payment is not open yet</div>
+                        <div className="text-xs sm:text-sm text-amber-800/90 mt-0.5">Your payment window has been temporarily locked. When it's opened, our team will contact you directly. You can still review the project dashboard.</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <StatTile label="Total" value={formatINR(total)} tone="navy" />
+                    <StatTile label="Paid" value={formatINR(paidAmount)} tone="emerald" />
+                    <StatTile label="Remaining" value={formatINR(remaining)} tone="orange" />
+                    <StatTile label="Progress" value={`${progressPct}%`} tone="brand" />
+                  </div>
+
+                  <LaunchCard launchAt={launchAt} />
+
+                  {installments.length > 0 && (
+                    <section className="rounded-3xl bg-white border border-border/70 p-5 sm:p-6 shadow-[0_20px_60px_-40px_rgba(21,101,216,0.5)]">
+                      <SectionHeader icon={<ClipboardList className="w-5 h-5 text-brand" />} title="Payment schedule" subtitle={`${installments.filter(i => i.paid).length} of ${installments.length} milestones cleared`} />
+                      <ul className="mt-5 space-y-2.5">
+                        {installments.map((inst, i) => {
+                          const paid = !!inst.paid;
+                          return (
+                            <motion.li
+                              key={i}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.05 }}
+                              className={`relative flex items-center gap-3 rounded-2xl border p-3.5 sm:p-4 overflow-hidden ${paid ? "bg-emerald-50/60 border-emerald-200" : "bg-white border-border hover:border-brand/40 transition-colors"}`}
+                            >
+                              <span className={`absolute left-0 top-0 bottom-0 w-1 ${paid ? "bg-emerald-500" : "bg-brand/60"}`} />
+                              <div className={`h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 ${paid ? "bg-emerald-500 text-white" : "bg-brand/10 text-brand font-bold"}`}>
+                                {paid ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-navy text-sm sm:text-base truncate">{inst.label}</div>
+                                <div className="text-xs text-slate-soft flex flex-wrap gap-x-2">
+                                  <span>{paid ? `Received${inst.paid_at ? ` · ${new Date(inst.paid_at).toLocaleDateString()}` : ""}` : "Pending"}</span>
+                                  {inst.due_date && !paid && <span className="inline-flex items-center gap-1"><Calendar className="w-3 h-3" /> Due {new Date(inst.due_date).toLocaleDateString()}</span>}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-display font-bold text-navy">{formatINR(Number(inst.amount) || 0)}</div>
+                                {!paid && !paymentLocked && (
+                                  <button onClick={() => { setSelected(inst); setCustomOpen(false); }} className="mt-1 text-[11px] font-semibold text-brand hover:underline">Pay now →</button>
+                                )}
+                                {!paid && paymentLocked && (
+                                  <div className="mt-1 text-[11px] font-semibold text-amber-700 inline-flex items-center gap-1"><Lock className="w-3 h-3" /> Locked</div>
+                                )}
+                              </div>
+                            </motion.li>
+                          );
+                        })}
+                      </ul>
+                    </section>
+                  )}
+
+                  {remaining > 0 && paymentLocked && (
+                    <div className="rounded-3xl bg-white border border-border p-6 text-center">
+                      <Lock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+                      <div className="font-display font-bold text-navy text-base">Payment link is currently locked</div>
+                      <div className="text-xs text-slate-soft mt-1">If it's opened, we will reach out to you on WhatsApp.</div>
+                      <a href="https://wa.me/917013906671" className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-4 py-2">
+                        <MessageCircle className="w-3.5 h-3.5" /> Contact us
+                      </a>
+                    </div>
+                  )}
+
+                  {remaining === 0 && total > 0 && (
+                    <div className="rounded-3xl bg-emerald-50 border border-emerald-200 p-6 text-center">
+                      <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                      <div className="font-display font-bold text-emerald-700 text-lg">All paid up. Thank you!</div>
+                      <div className="text-sm text-emerald-700/80">Your project payment is complete.</div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-soft">
+                    <ShieldCheck className="w-3.5 h-3.5" /> UPI · Google Pay · PhonePe · Paytm
+                  </div>
+                </>
+              )}
+
+              {tab === "dashboard" && payment.dashboard_enabled && (
+                <ProjectDashboard
+                  title={payment.dashboard_title || `${payment.title} Dashboard`}
+                  pages={Array.isArray(payment.dashboard_pages) ? (payment.dashboard_pages as DashPage[]) : []}
+                  notes={notes}
+                />
+              )}
+
+              {tab === "sessions" && <SessionsSection upcoming={upcomingSessions} completed={completedSessions} />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </main>
+
+      {/* ===== STICKY PAY BAR (mobile + desktop) ===== */}
+      {tab === "overview" && remaining > 0 && !paymentLocked && (
+        <div className="fixed bottom-16 lg:bottom-6 left-0 right-0 z-30 px-4 lg:pl-[300px] lg:pr-10 pointer-events-none">
+          <div className="mx-auto max-w-4xl flex gap-2 pointer-events-auto">
+            <button
+              onClick={() => { setSelected(null); setCustomOpen(true); setCustomAmount(String(remaining)); }}
+              className="flex-1 rounded-2xl bg-gradient-brand text-white py-3.5 font-semibold shadow-glow"
+            >
+              Pay remaining · {formatINR(remaining)}
+            </button>
+            <button
+              onClick={() => { setSelected(null); setCustomOpen(true); setCustomAmount(""); }}
+              className="rounded-2xl bg-white border border-border text-navy px-4 py-3.5 font-semibold shadow-soft"
+            >
+              Custom
             </button>
           </div>
-        </motion.section>
-
-        <LaunchCard launchAt={launchAt} />
-
-        {payment.dashboard_enabled && (
-          <div id="dashboard-section" style={{ scrollMarginTop: 120 }}>
-            <ProjectDashboard
-              title={payment.dashboard_title || `${payment.title} Dashboard`}
-              pages={Array.isArray(payment.dashboard_pages) ? (payment.dashboard_pages as DashPage[]) : []}
-              notes={notes}
-            />
-          </div>
-        )}
-
-        <div id="sessions-section" style={{ scrollMarginTop: 120 }}>
-          <SessionsSection upcoming={upcomingSessions} completed={completedSessions} />
         </div>
+      )}
 
-        <p className="text-center text-xs text-slate-soft pt-2">
-          Need help? <a href="https://wa.me/917013906671" className="text-brand font-semibold">WhatsApp us</a>
-        </p>
-      </main>
+      {/* ===== MOBILE BOTTOM TABS ===== */}
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-border pb-[env(safe-area-inset-bottom)]">
+        <div className="grid" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0,1fr))` }}>
+          {tabs.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)} className={`flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-bold ${tab === t.id ? "text-brand" : "text-slate-soft"}`}>
+              {t.icon}
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </nav>
 
       <AnimatePresence>
         {showNotes && notes.length > 0 && (
@@ -369,14 +395,6 @@ function PayPage() {
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function TabButton({ onClick, icon, label }: { onClick: () => void; icon: React.ReactNode; label: string }) {
-  return (
-    <button onClick={onClick} className="rounded-xl py-2 text-xs sm:text-sm font-semibold text-navy hover:bg-white transition-colors inline-flex items-center justify-center gap-1.5">
-      <span className="text-brand">{icon}</span> {label}
-    </button>
   );
 }
 
