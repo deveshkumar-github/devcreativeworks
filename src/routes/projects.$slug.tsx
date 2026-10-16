@@ -18,7 +18,7 @@ export const Route = createFileRoute("/projects/$slug")({
   ),
   errorComponent: ({ error }) => (
     <div className="min-h-screen flex items-center justify-center">
-      <p className="text-slate-soft">{error.message}</p>
+      <p className="text-slate-soft">{error instanceof Error ? error.message : String(error)}</p>
     </div>
   ),
 });
