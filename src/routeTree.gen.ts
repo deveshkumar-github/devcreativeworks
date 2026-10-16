@@ -10,22 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ReferIndexRouteImport } from './routes/refer.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as ReferDashboardRouteImport } from './routes/refer.dashboard'
-import { Route as ReferCodeRouteImport } from './routes/refer.$code'
-import { Route as ProjectsSlugRouteImport } from './routes/projects.$slug'
-import { Route as PaySlugRouteImport } from './routes/pay.$slug'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as PaySlugRouteImport } from './routes/pay.$slug'
+import { Route as ProjectsSlugRouteImport } from './routes/projects.$slug'
+import { Route as ReferIndexRouteImport } from './routes/refer.index'
+import { Route as ReferCodeRouteImport } from './routes/refer.$code'
+import { Route as ReferDashboardRouteImport } from './routes/refer.dashboard'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReferIndexRoute = ReferIndexRouteImport.update({
-  id: '/refer/',
-  path: '/refer/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -33,19 +28,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReferDashboardRoute = ReferDashboardRouteImport.update({
-  id: '/refer/dashboard',
-  path: '/refer/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReferCodeRoute = ReferCodeRouteImport.update({
-  id: '/refer/$code',
-  path: '/refer/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
-  id: '/projects/$slug',
-  path: '/projects/$slug',
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaySlugRoute = PaySlugRouteImport.update({
@@ -53,9 +38,24 @@ const PaySlugRoute = PaySlugRouteImport.update({
   path: '/pay/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin/login',
-  path: '/admin/login',
+const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
+  id: '/projects/$slug',
+  path: '/projects/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReferIndexRoute = ReferIndexRouteImport.update({
+  id: '/refer/',
+  path: '/refer/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReferCodeRoute = ReferCodeRouteImport.update({
+  id: '/refer/$code',
+  path: '/refer/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReferDashboardRoute = ReferDashboardRouteImport.update({
+  id: '/refer/dashboard',
+  path: '/refer/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -143,13 +143,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/refer/': {
-      id: '/refer/'
-      path: '/refer'
-      fullPath: '/refer/'
-      preLoaderRoute: typeof ReferIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -157,25 +150,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/refer/dashboard': {
-      id: '/refer/dashboard'
-      path: '/refer/dashboard'
-      fullPath: '/refer/dashboard'
-      preLoaderRoute: typeof ReferDashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/refer/$code': {
-      id: '/refer/$code'
-      path: '/refer/$code'
-      fullPath: '/refer/$code'
-      preLoaderRoute: typeof ReferCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projects/$slug': {
-      id: '/projects/$slug'
-      path: '/projects/$slug'
-      fullPath: '/projects/$slug'
-      preLoaderRoute: typeof ProjectsSlugRouteImport
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pay/$slug': {
@@ -185,11 +164,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/admin/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
+    '/projects/$slug': {
+      id: '/projects/$slug'
+      path: '/projects/$slug'
+      fullPath: '/projects/$slug'
+      preLoaderRoute: typeof ProjectsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refer/': {
+      id: '/refer/'
+      path: '/refer'
+      fullPath: '/refer/'
+      preLoaderRoute: typeof ReferIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refer/$code': {
+      id: '/refer/$code'
+      path: '/refer/$code'
+      fullPath: '/refer/$code'
+      preLoaderRoute: typeof ReferCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refer/dashboard': {
+      id: '/refer/dashboard'
+      path: '/refer/dashboard'
+      fullPath: '/refer/dashboard'
+      preLoaderRoute: typeof ReferDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
